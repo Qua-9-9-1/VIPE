@@ -6,10 +6,14 @@
 #include <opencv2/imgproc.hpp>
 #include <iostream>
 #include <memory>
+#include <vector>
+
 #include "Menu.hpp"
+#include "Canva.hpp"
 
 namespace vipe {
     class Menu;
+    class Canva;
 
     class MyWindow : public Gtk::Window {
         public:
@@ -17,8 +21,6 @@ namespace vipe {
             ~MyWindow();
             Gtk::VBox& get_vbox() { return _vbox; }
             Gtk::DrawingArea& get_drawing_area() { return _drawing_area; }
-            cv::Mat& get_current_image() { return _current_image; }
-            std::string& get_current_filename() { return _current_filename; }
             bool onDraw(const Cairo::RefPtr<Cairo::Context>& cr);
             // file options
             void create_file_option();
@@ -36,11 +38,19 @@ namespace vipe {
             void resize_image();
             // effect options
             void blur_effect();
+            //events
+            bool on_button_press(GdkEventButton* event);
+            bool on_button_release(GdkEventButton* event);
+            bool on_motion_notify(GdkEventMotion* event);
+            bool on_key_press(GdkEventKey* event);
+            bool file_shortcuts(GdkEventKey* event);
+
         private:
             Menu                    _menu;
             Gtk::VBox               _vbox;
             Gtk::DrawingArea        _drawing_area;
-            cv::Mat                 _current_image;
-            std::string             _current_filename;
+            std::shared_ptr<Canva> _canva;
+            std::vector<Canva>     _canvas;
+            bool _pen;
     };
 }
