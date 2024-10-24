@@ -69,4 +69,19 @@ namespace vipe {
     
         _menu_bar.append(*effect_item);
     }
+
+    void Menu::create_sub_menu()
+    {
+        auto label = Gtk::make_managed<Gtk::Label>("Taille du pinceau:");
+        auto brush_size_scale = Gtk::make_managed<Gtk::Scale>();
+
+        _sub_menu.set_orientation(Gtk::ORIENTATION_VERTICAL);
+        brush_size_scale->set_range(1.0, 400.0);
+        brush_size_scale->set_value(_tool_size);
+        brush_size_scale->signal_value_changed().connect([this, brush_size_scale]() {
+            _tool_size = static_cast<int>(brush_size_scale->get_value());
+        });
+        _sub_menu.pack_start(*label, Gtk::PACK_SHRINK);
+        _sub_menu.pack_start(*brush_size_scale, Gtk::PACK_SHRINK);
+    }
 }
