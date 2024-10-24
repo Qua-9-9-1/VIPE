@@ -32,8 +32,8 @@ namespace vipe {
 
     void MyWindow::save_file()
     {
-        auto image = _canva->get_image();
         auto filename = _canva->get_filename();
+        auto image = _canva->get_merged_image();
 
         if (image.empty()) {
             std::cerr << "Aucune image à sauvegarder." << std::endl;
@@ -48,7 +48,7 @@ namespace vipe {
 
     void MyWindow::save_as_file()
     {
-        auto image = _canva->get_image();
+        auto image = _canva->get_merged_image();
 
         if (image.empty()) {
             std::cerr << "Aucune image à sauvegarder." << std::endl;
