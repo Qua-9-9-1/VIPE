@@ -10,15 +10,20 @@
 
 #include "Menu.hpp"
 #include "Canva.hpp"
+#include "Toolkit.hpp"
 
 namespace vipe {
     class Menu;
     class Canva;
+    class Toolkit;
 
     class MyWindow : public Gtk::Window {
         public:
             MyWindow();
             ~MyWindow();
+            void build_menu();
+            void build_drawing_area();
+            void build_panels();
             Gtk::VBox& get_vbox() { return _vbox; }
             Gtk::DrawingArea& get_drawing_area() { return _drawing_area; }
             bool onDraw(const Cairo::RefPtr<Cairo::Context>& cr);
@@ -44,13 +49,15 @@ namespace vipe {
             bool on_motion_notify(GdkEventMotion* event);
             bool on_key_press(GdkEventKey* event);
             bool file_shortcuts(GdkEventKey* event);
-
         private:
             Menu                    _menu;
             Gtk::VBox               _vbox;
             Gtk::DrawingArea        _drawing_area;
             std::shared_ptr<Canva> _canva;
             std::vector<Canva>     _canvas;
-            bool _pen;
+            Gtk::Overlay           _overlay;
+            Gtk::Fixed             _fixed_layout;
+            Toolkit                _toolkit;
+            
     };
 }

@@ -9,7 +9,6 @@ namespace vipe {
         }
         if (event->type == GDK_BUTTON_PRESS && event->button == 3) {
             _canva->set_color(cv::Scalar(255, 255, 255, 255));
-            _canva->draw_line(event->x, event->y);
         }
         return true;
     }
@@ -27,10 +26,10 @@ namespace vipe {
     bool MyWindow::on_motion_notify(GdkEventMotion* event)
     {
         if (event->state & (GDK_BUTTON1_MASK | GDK_BUTTON3_MASK)) {
-            if (_pen) {
-                _canva->draw_line(event->x, event->y);
-            } else {
-                _canva->erase(event->x, event->y);
+            if (_toolkit.get_current_tool() == vipe::Tool::pencil) {
+                _canva->draw_line(event->x, event->y, _menu.get_tool_size());
+            } else if (_toolkit.get_current_tool() == vipe::Tool::eraser) {
+                _canva->erase(event->x, event->y, _menu.get_tool_size());
             }
             _drawing_area.queue_draw();
         }
@@ -70,7 +69,7 @@ namespace vipe {
 
     bool MyWindow::on_key_press(GdkEventKey* event) {
         if (event->keyval == GDK_KEY_x || event->keyval == GDK_KEY_X) {
-            _pen = !_pen;
+            std::cout << "X key pressed\n";
             return true;
         }
         if (file_shortcuts(event))
