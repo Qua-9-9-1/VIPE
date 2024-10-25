@@ -1,9 +1,13 @@
+#pragma once
+
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <gtkmm.h>
 #include <iostream>
 #include <vector>
+
+#include "FloatingPanel.hpp"
 
 namespace vipe {
 
@@ -23,6 +27,9 @@ namespace vipe {
             void set_filename(const std::string& filename) { _current_filename = filename; }
             void set_point_pos(int x, int y) { _prev_x = x; _prev_y = y; }
             void set_color(cv::Scalar color) { _color = color; }
+            void set_selected_layer(int index) { _selected_layer = index; }
+            bool is_layer_visible(int index) { return _layers[index].visible; }
+            std::vector<Layer>& get_layers() { return _layers; }
             std::string get_filename() { return _current_filename; }
             cv::Mat get_merged_image();
             void draw_line(int x1, int y1, int size);

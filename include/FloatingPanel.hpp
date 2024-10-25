@@ -9,7 +9,7 @@ namespace vipe {
 
     class FloatingPanel : public Gtk::Box {
         public:
-            FloatingPanel();
+            FloatingPanel(int pos_x, int pos_y);
             ~FloatingPanel();
             void build_header();
             bool on_drag_start(GdkEventButton *event);

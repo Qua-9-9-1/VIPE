@@ -101,8 +101,8 @@ namespace vipe {
             cv::cvtColor(src, dst, cv::COLOR_BGR2BGRA);
         else if (src.channels() == 4)
             dst = src.clone();
-        else
-            throw std::runtime_error("Format d'image non supporté.");
+        // else
+        //     throw std::runtime_error("Image non supportée.");
     }
 
     Cairo::RefPtr<Cairo::ImageSurface> Canva::create_cairo_surface(const cv::Mat& image)

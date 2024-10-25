@@ -4,7 +4,6 @@ namespace vipe {
 
     void MyWindow::new_file()
     {
-        //ajouter un canva vierge au vecteur
         _canvas.push_back(Canva());
         _canva = std::make_shared<Canva>(_canvas.back());
         _drawing_area.queue_draw();
@@ -78,7 +77,6 @@ namespace vipe {
 
     void MyWindow::close_file()
     {
-        //supprimer le canva courant du vecteur
         _canvas.pop_back();
         _canva = std::make_shared<Canva>(_canvas.back());
         _drawing_area.queue_draw();

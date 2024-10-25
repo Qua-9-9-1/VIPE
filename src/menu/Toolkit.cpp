@@ -3,7 +3,7 @@
 #include <iostream>
 
 namespace vipe {
-    Toolkit::Toolkit(): _current_tool(Tool::pencil)
+    Toolkit::Toolkit(): _current_tool(Tool::pencil), _tool_panel(10, 10)
     {
         build_tool_grid();
     }
