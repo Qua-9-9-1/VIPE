@@ -34,10 +34,10 @@ namespace vipe {
         FloatingPanel &get_tool_panel() { return _tool_panel; }
 
     private:
-        Tool _current_tool;
-        Gtk::Grid _icon_grid;
-        std::vector<Gtk::Button*> _tool_buttons;
-        FloatingPanel _tool_panel;
+        Tool                        _current_tool;
+        Gtk::Grid                   _icon_grid;
+        std::vector<Gtk::Button*>   _tool_buttons;
+        FloatingPanel               _tool_panel;
     };
 
 }
