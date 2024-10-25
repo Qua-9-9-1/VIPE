@@ -2,14 +2,14 @@
 
 namespace vipe {
 
-    void MyWindow::new_file()
+    void Engine::new_file()
     {
         _canvas.push_back(Canva());
         _canva = std::make_shared<Canva>(_canvas.back());
         _drawing_area.queue_draw();
     }
 
-    void MyWindow::open_file()
+    void Engine::open_file()
     {
         Gtk::FileChooserDialog dialog("Choisir une image", Gtk::FILE_CHOOSER_ACTION_OPEN);
         dialog.set_transient_for(*this);
@@ -29,7 +29,7 @@ namespace vipe {
         }
     }
 
-    void MyWindow::save_file()
+    void Engine::save_file()
     {
         auto filename = _canva->get_filename();
         auto image = _canva->get_merged_image();
@@ -45,7 +45,7 @@ namespace vipe {
         cv::imwrite(filename, image);
     }
 
-    void MyWindow::save_as_file()
+    void Engine::save_as_file()
     {
         auto image = _canva->get_merged_image();
 
@@ -75,7 +75,7 @@ namespace vipe {
         }
     }
 
-    void MyWindow::close_file()
+    void Engine::close_file()
     {
         _canvas.pop_back();
         _canva = std::make_shared<Canva>(_canvas.back());

@@ -2,7 +2,7 @@
 #include "FloatingPanel.hpp"
 
 namespace vipe {
-    MyWindow::MyWindow() : _menu(*this)
+    Engine::Engine() : _menu(*this)
     {
         set_title("VIPE - Visual Image Processing Editor");
         set_default_size(800, 600);
@@ -18,9 +18,9 @@ namespace vipe {
         show_all_children();
     }
 
-    MyWindow::~MyWindow() {}
+    Engine::~Engine() {}
 
-    void MyWindow::build_menu()
+    void Engine::build_menu()
     {
         auto screen = Gdk::Screen::get_default();
         auto style_context = Gtk::StyleContext::create();
@@ -33,17 +33,17 @@ namespace vipe {
         _vbox.pack_start(sub_menu, Gtk::PACK_SHRINK);
     }
 
-    void MyWindow::build_drawing_area()
+    void Engine::build_drawing_area()
     {
         _overlay.add(_drawing_area);
         _drawing_area.signal_draw().connect(sigc::mem_fun(*_canva, &Canva::display_canva));
         _drawing_area.add_events(Gdk::BUTTON_PRESS_MASK | Gdk::POINTER_MOTION_MASK | Gdk::BUTTON_RELEASE_MASK);
-        _drawing_area.signal_button_press_event().connect(sigc::mem_fun(*this, &MyWindow::on_button_press));
-        _drawing_area.signal_button_release_event().connect(sigc::mem_fun(*this, &MyWindow::on_button_release));
-        _drawing_area.signal_motion_notify_event().connect(sigc::mem_fun(*this, &MyWindow::on_motion_notify));
+        _drawing_area.signal_button_press_event().connect(sigc::mem_fun(*this, &Engine::on_button_press));
+        _drawing_area.signal_button_release_event().connect(sigc::mem_fun(*this, &Engine::on_button_release));
+        _drawing_area.signal_motion_notify_event().connect(sigc::mem_fun(*this, &Engine::on_motion_notify));
     }
 
-    void MyWindow::build_panels()
+    void Engine::build_panels()
     {
 
         _vbox.pack_start(_overlay, Gtk::PACK_EXPAND_WIDGET);

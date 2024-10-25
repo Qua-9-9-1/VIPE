@@ -1,7 +1,7 @@
 #include "Engine.hpp"
 
 namespace vipe {
-    void MyWindow::fullscreen()
+    void Engine::fullscreen()
     {
         std::cout << "fullscreen" << std::endl;
     }

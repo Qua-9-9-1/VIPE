@@ -3,7 +3,7 @@
 int main()
 {
     auto app = Gtk::Application::create("org.vipe");
-    vipe::MyWindow window;
+    vipe::Engine window;
 
     return app->run(window);
 }

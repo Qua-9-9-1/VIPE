@@ -19,10 +19,10 @@ namespace vipe {
     class Canva;
     class Toolkit;
 
-    class MyWindow : public Gtk::Window {
+    class Engine : public Gtk::Window {
         public:
-            MyWindow();
-            ~MyWindow();
+            Engine();
+            ~Engine();
             void build_menu();
             void build_drawing_area();
             void build_panels();

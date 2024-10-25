@@ -5,7 +5,7 @@
 
 namespace vipe {
 
-    class MyWindow;
+    class Engine;
 
     class FloatingPanel : public Gtk::Box {
         public:

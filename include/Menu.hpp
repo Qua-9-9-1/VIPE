@@ -3,11 +3,11 @@
 #include <gtkmm.h>
 
 namespace vipe {
-    class MyWindow;
+    class Engine;
 
     class Menu {
         public:
-            Menu(MyWindow& window);;
+            Menu(Engine& window);;
             ~Menu();
             Gtk::MenuBar& get_menu_bar() { return _menu_bar; }
             Gtk::VBox& get_sub_menu() { return _sub_menu; }
@@ -19,7 +19,7 @@ namespace vipe {
             void create_sub_menu();
         private:
             int _tool_size;
-            MyWindow& _window;
+            Engine& _window;
             Gtk::MenuBar _menu_bar;
             Gtk::VBox _sub_menu;
 

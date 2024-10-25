@@ -1,7 +1,7 @@
 #include "Engine.hpp"
 
 namespace vipe {
-    void MyWindow::resize_image()
+    void Engine::resize_image()
     {
         std::cout << "resize" << std::endl;
     }

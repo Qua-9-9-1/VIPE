@@ -9,23 +9,23 @@ namespace vipe {
         file_item->set_submenu(*file_menu);
 
         auto new_item = Gtk::make_managed<Gtk::MenuItem>("Nouveau");
-        new_item->signal_activate().connect(sigc::mem_fun(_window, &MyWindow::new_file));
+        new_item->signal_activate().connect(sigc::mem_fun(_window, &Engine::new_file));
         file_menu->append(*new_item);
 
         auto open_item = Gtk::make_managed<Gtk::MenuItem>("Ouvrir");
-        open_item->signal_activate().connect(sigc::mem_fun(_window, &MyWindow::open_file));
+        open_item->signal_activate().connect(sigc::mem_fun(_window, &Engine::open_file));
         file_menu->append(*open_item);
 
         auto save_item = Gtk::make_managed<Gtk::MenuItem>("Enregistrer");
-        save_item->signal_activate().connect(sigc::mem_fun(_window, &MyWindow::save_file));
+        save_item->signal_activate().connect(sigc::mem_fun(_window, &Engine::save_file));
         file_menu->append(*save_item);
 
         auto save_as_item = Gtk::make_managed<Gtk::MenuItem>("Enregistrer sous");
-        save_as_item->signal_activate().connect(sigc::mem_fun(_window, &MyWindow::save_as_file));
+        save_as_item->signal_activate().connect(sigc::mem_fun(_window, &Engine::save_as_file));
         file_menu->append(*save_as_item);
 
         auto close_item = Gtk::make_managed<Gtk::MenuItem>("Fermer");
-        close_item->signal_activate().connect(sigc::mem_fun(_window, &MyWindow::close_file));
+        close_item->signal_activate().connect(sigc::mem_fun(_window, &Engine::close_file));
         file_menu->append(*close_item);
 
         _menu_bar.append(*file_item);
@@ -38,7 +38,7 @@ namespace vipe {
         display_item->set_submenu(*display_menu);
 
         auto fullscreen_item = Gtk::make_managed<Gtk::MenuItem>("Plein écran");
-        fullscreen_item->signal_activate().connect(sigc::mem_fun(_window, &MyWindow::fullscreen));
+        fullscreen_item->signal_activate().connect(sigc::mem_fun(_window, &Engine::fullscreen));
         display_menu->append(*fullscreen_item);
 
         _menu_bar.append(*display_item);
@@ -51,7 +51,7 @@ namespace vipe {
         image_item->set_submenu(*image_menu);
 
         auto resize_item = Gtk::make_managed<Gtk::MenuItem>("Redimensionner");
-        resize_item->signal_activate().connect(sigc::mem_fun(_window, &MyWindow::resize_image));
+        resize_item->signal_activate().connect(sigc::mem_fun(_window, &Engine::resize_image));
         image_menu->append(*resize_item);
 
         _menu_bar.append(*image_item);
@@ -64,7 +64,7 @@ namespace vipe {
         effect_item->set_submenu(*effect_menu);
 
         auto blur_item = Gtk::make_managed<Gtk::MenuItem>("Flou");
-        blur_item->signal_activate().connect(sigc::mem_fun(_window, &MyWindow::blur_effect));
+        blur_item->signal_activate().connect(sigc::mem_fun(_window, &Engine::blur_effect));
         effect_menu->append(*blur_item);
     
         _menu_bar.append(*effect_item);

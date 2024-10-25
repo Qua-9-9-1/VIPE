@@ -2,7 +2,7 @@
 
 namespace vipe {
 
-    bool MyWindow::on_button_press(GdkEventButton* event)
+    bool Engine::on_button_press(GdkEventButton* event)
     {
         if (event->type == GDK_BUTTON_PRESS && event->button == 1) {
             _canva->set_color(cv::Scalar(0, 0, 0, 255));
@@ -13,7 +13,7 @@ namespace vipe {
         return true;
     }
 
-    bool MyWindow::on_button_release(GdkEventButton* event)
+    bool Engine::on_button_release(GdkEventButton* event)
     {
         if (event->type == GDK_BUTTON_RELEASE
         && (event->button == 1 || event->button == 3)) {
@@ -23,7 +23,7 @@ namespace vipe {
         return true;
     }
 
-    bool MyWindow::on_motion_notify(GdkEventMotion* event)
+    bool Engine::on_motion_notify(GdkEventMotion* event)
     {
         if (event->state & (GDK_BUTTON1_MASK | GDK_BUTTON3_MASK)) {
             if (_toolkit.get_current_tool() == vipe::Tool::pencil) {
@@ -36,7 +36,7 @@ namespace vipe {
         return true;
     }
 
-    bool MyWindow::file_shortcuts(GdkEventKey* event)
+    bool Engine::file_shortcuts(GdkEventKey* event)
     {
         if ((event->state & GDK_CONTROL_MASK)
         && (event->keyval == GDK_KEY_n || event->keyval == GDK_KEY_N)) {
@@ -67,7 +67,7 @@ namespace vipe {
         return false;
     }
 
-    bool MyWindow::on_key_press(GdkEventKey* event) {
+    bool Engine::on_key_press(GdkEventKey* event) {
         if (event->keyval == GDK_KEY_x || event->keyval == GDK_KEY_X) {
             std::cout << "X key pressed\n";
             return true;

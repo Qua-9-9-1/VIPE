@@ -2,7 +2,7 @@
 
 
 namespace vipe {
-    Menu::Menu(MyWindow& window) : _window(window), _tool_size(1)
+    Menu::Menu(Engine& window) : _window(window), _tool_size(1)
     {
         _menu_bar.override_background_color(Gdk::RGBA("D5E1F5"));
         create_file_option();
