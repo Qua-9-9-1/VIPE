@@ -11,6 +11,8 @@
 #include "Menu.hpp"
 #include "Canva.hpp"
 #include "Toolkit.hpp"
+#include "LayersPanel.hpp"
+#include "ColorPalette.hpp"
 
 namespace vipe {
     class Menu;
@@ -53,11 +55,12 @@ namespace vipe {
             Menu                    _menu;
             Gtk::VBox               _vbox;
             Gtk::DrawingArea        _drawing_area;
-            std::shared_ptr<Canva> _canva;
-            std::vector<Canva>     _canvas;
-            Gtk::Overlay           _overlay;
-            Gtk::Fixed             _fixed_layout;
-            Toolkit                _toolkit;
-            
+            std::shared_ptr<Canva>  _canva;
+            std::vector<Canva>      _canvas;
+            Gtk::Overlay            _overlay;
+            Gtk::Fixed              _fixed_layout;
+            Toolkit                 _toolkit;
+            std::unique_ptr<LayersPanel> _layer_panel;
+            ColorPalette            _color_palette;
     };
 }

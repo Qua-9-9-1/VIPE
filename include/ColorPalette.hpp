@@ -23,6 +23,6 @@ namespace vipe {
             cv::Scalar      _first_color;
             cv::Scalar      _second_color;
             FloatingPanel   _color_palette;
-            Gtk::box        _color_box;
+            Gtk::Box        _color_box;
     };
 }
