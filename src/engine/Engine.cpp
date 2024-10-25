@@ -1,4 +1,5 @@
 #include "Engine.hpp"
+#include "FloatingPanel.hpp"
 
 namespace vipe {
     MyWindow::MyWindow() : _menu(*this)
@@ -8,7 +9,8 @@ namespace vipe {
         _vbox.set_orientation(Gtk::ORIENTATION_VERTICAL);
         add(_vbox);
         _canvas.push_back(Canva());
-        _canva = std::make_shared<Canva>();
+        _canva = std::make_shared<Canva>(_canvas[0]);
+        _layer_panel = std::make_unique<LayersPanel>(*_canva);
         build_menu();
         build_drawing_area();
         build_panels();
@@ -20,14 +22,11 @@ namespace vipe {
 
     void MyWindow::build_menu()
     {
-        auto css_provider = Gtk::CssProvider::create();
         auto screen = Gdk::Screen::get_default();
         auto style_context = Gtk::StyleContext::create();
         auto& menu_bar = _menu.get_menu_bar();
         auto& sub_menu = _menu.get_sub_menu();
 
-        css_provider->load_from_path("../src/styles/Menu.css");
-        style_context->add_provider_for_screen(screen, css_provider, GTK_STYLE_PROVIDER_PRIORITY_USER);
         menu_bar.get_style_context()->add_class("menu-bar");
         _vbox.pack_start(menu_bar, Gtk::PACK_SHRINK);
         sub_menu.get_style_context()->add_class("sub-menu");
@@ -46,9 +45,12 @@ namespace vipe {
 
     void MyWindow::build_panels()
     {
+
         _vbox.pack_start(_overlay, Gtk::PACK_EXPAND_WIDGET);
         _overlay.add_overlay(_fixed_layout);
+        _fixed_layout.put(_layer_panel->get_layer_panel(), 300, 300);
         _fixed_layout.put(_toolkit.get_tool_panel(), 10, 10);
+        _fixed_layout.put(_color_palette.get_color_palette(), 40, 200);
         _overlay.set_overlay_pass_through(_fixed_layout, true);
     }
 }

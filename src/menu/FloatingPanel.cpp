@@ -1,11 +1,11 @@
 #include "FloatingPanel.hpp"
 
 namespace vipe {
-    FloatingPanel::FloatingPanel()
+    FloatingPanel::FloatingPanel(int pos_x, int pos_y)
         : Gtk::Box(Gtk::ORIENTATION_VERTICAL),
         _dragging(false),
         _drag_start_x(0), _drag_start_y(0),
-        _panel_start_x(10), _panel_start_y(10)
+        _panel_start_x(pos_x), _panel_start_y(pos_y)
     {
         override_background_color(Gdk::RGBA("lightblue"));
         build_header();
@@ -21,15 +21,16 @@ namespace vipe {
 
         _floating_panel.set_orientation(Gtk::ORIENTATION_VERTICAL);
         _header_bar.set_orientation(Gtk::ORIENTATION_HORIZONTAL);
-        _close_button.set_label("x");
+        _close_button.set_image_from_icon_name("window-close-symbolic", Gtk::ICON_SIZE_BUTTON);
         _close_button.signal_clicked().connect(sigc::mem_fun(*this, &FloatingPanel::on_close_clicked));
-        _header_bar.pack_end(_close_button, Gtk::PACK_SHRINK);    
+        _header_bar.pack_end(_close_button, Gtk::PACK_SHRINK);
         event_box->add(_header_bar);
         pack_start(*event_box, Gtk::PACK_SHRINK);
         event_box->add_events(Gdk::BUTTON_PRESS_MASK | Gdk::BUTTON_RELEASE_MASK | Gdk::POINTER_MOTION_MASK);
         event_box->signal_button_press_event().connect(sigc::mem_fun(*this, &FloatingPanel::on_drag_start));
         event_box->signal_motion_notify_event().connect(sigc::mem_fun(*this, &FloatingPanel::on_drag_motion));
         event_box->signal_button_release_event().connect(sigc::mem_fun(*this, &FloatingPanel::on_drag_stop));
+        event_box->override_background_color(Gdk::RGBA("lightsteelblue"));
         _floating_panel.pack_start(_header_bar, Gtk::PACK_SHRINK);
     }
 
