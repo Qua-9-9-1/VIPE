@@ -155,8 +155,8 @@ namespace vipe {
     void Canva::merge_layers()
     {
         if (_layers.empty()) return;
+        cv::Mat merged = cv::Mat::zeros(_image.size(), _image.type());
         cv::Mat image;
-        auto merged = image;
 
         for (auto layer : _layers) {
             if (layer.image.empty() || !layer.visible) continue;
@@ -167,6 +167,4 @@ namespace vipe {
             merged = cv::Mat(_image.size(), _image.type(), cv::Scalar(0, 0, 0, 0));
         _image = merged;
     }
-
-
 }
