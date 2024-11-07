@@ -29,6 +29,13 @@ namespace vipe {
         }
     }
 
+    void Engine::open_file_from_path(const std::string& filename)
+    {
+        _canva->set_image(filename);
+        _canva->set_filename(filename);
+        _drawing_area.queue_draw();
+    }
+
     void Engine::save_file()
     {
         auto filename = _canva->get_filename();

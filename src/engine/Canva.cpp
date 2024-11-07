@@ -20,13 +20,13 @@ namespace vipe {
 
             convert_to_RGBA(_bg_tiled, bg_rgba);
             auto bg_surface = create_cairo_surface(bg_rgba);
-            cr->set_source(bg_surface, 0, 0);
+            cr->set_source(bg_surface, _view_offset_x, _view_offset_y);
             cr->paint();
             for (const auto& layer : _layers) {
                 if (!layer.visible) continue;
                 convert_to_RGBA(layer.image, image_rgba);
                 auto surface = create_cairo_surface(image_rgba);
-                cr->set_source(surface, 0, 0);
+                cr->set_source(surface, _view_offset_x, _view_offset_y);
                 cr->paint_with_alpha(layer.opacity / 100.0);
             }
             return true;
@@ -67,12 +67,15 @@ namespace vipe {
         convert_to_RGBA(_image, _image);
         recalculate_background(cv::Size(_image.cols, _image.rows));
         _layers[0].image = _image;
+        
     }
 
     void Canva::draw_line(int x1, int y1, int size)
     {
         auto& layer = _layers[_selected_layer].image;
 
+        x1 -= _view_offset_x;
+        y1 -= _view_offset_y;
         if (layer.empty()) {
             return;
         }
@@ -86,6 +89,8 @@ namespace vipe {
     {
         auto& layer = _layers[_selected_layer].image;
 
+        x1 -= _view_offset_x;
+        y1 -= _view_offset_y;
         if (layer.empty()) {
             return;
         }

@@ -36,6 +36,7 @@ namespace vipe {
             void create_effect_option();
             void new_file();
             void open_file();
+            void open_file_from_path(const std::string& filename);
             void save_file();
             void save_as_file();
             void close_file();
@@ -50,8 +51,10 @@ namespace vipe {
             bool on_button_release(GdkEventButton* event);
             bool on_motion_notify(GdkEventMotion* event);
             bool on_key_press(GdkEventKey* event);
+            bool key_events(GdkEventKey* event);
             bool file_shortcuts(GdkEventKey* event);
         private:
+
             Menu                    _menu;
             Gtk::VBox               _vbox;
             Gtk::DrawingArea        _drawing_area;

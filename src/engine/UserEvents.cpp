@@ -38,38 +38,56 @@ namespace vipe {
 
     bool Engine::file_shortcuts(GdkEventKey* event)
     {
-        if ((event->state & GDK_CONTROL_MASK)
-        && (event->keyval == GDK_KEY_n || event->keyval == GDK_KEY_N)) {
-            new_file();
+        if (event->state & GDK_CONTROL_MASK) {
+            if ((event->keyval == GDK_KEY_n || event->keyval == GDK_KEY_N)) {
+                new_file();
+                return true;
+            }
+            if ((event->keyval == GDK_KEY_o || event->keyval == GDK_KEY_O)) {
+                open_file();
+                return true;
+            }
+            if ((event->keyval == GDK_KEY_s || event->keyval == GDK_KEY_S)) {
+                save_file();
+                return true;
+            }
+            if ((event->state & GDK_SHIFT_MASK)
+            && (event->keyval == GDK_KEY_s || event->keyval == GDK_KEY_S)) {
+                save_as_file();
+                return true;
+            }
+            if ((event->keyval == GDK_KEY_w || event->keyval == GDK_KEY_W)) {
+                close_file();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool Engine::key_events(GdkEventKey* event)
+    {
+        if ((event->keyval == GDK_KEY_Z || event->keyval == GDK_KEY_z)) {
+            _canva->move_view(0, -10);
             return true;
         }
-        if ((event->state & GDK_CONTROL_MASK)
-        && (event->keyval == GDK_KEY_o || event->keyval == GDK_KEY_O)) {
-            open_file();
+        if ((event->keyval == GDK_KEY_S || event->keyval == GDK_KEY_s)) {
+            _canva->move_view(0, 10);
             return true;
         }
-        if ((event->state & GDK_CONTROL_MASK)
-        && (event->keyval == GDK_KEY_s || event->keyval == GDK_KEY_S)) {
-            save_file();
+        if ((event->keyval == GDK_KEY_Q || event->keyval == GDK_KEY_q)) {
+            _canva->move_view(-10, 0);
             return true;
         }
-        if ((event->state & GDK_CONTROL_MASK)
-        && (event->state & GDK_SHIFT_MASK)
-        && (event->keyval == GDK_KEY_s || event->keyval == GDK_KEY_S)) {
-            save_as_file();
-            return true;
-        }
-        if ((event->state & GDK_CONTROL_MASK)
-        && (event->keyval == GDK_KEY_w || event->keyval == GDK_KEY_W)) {
-            close_file();
+        if ((event->keyval == GDK_KEY_D || event->keyval == GDK_KEY_d)) {
+            _canva->move_view(10, 0);
             return true;
         }
         return false;
     }
 
     bool Engine::on_key_press(GdkEventKey* event) {
-        if (event->keyval == GDK_KEY_x || event->keyval == GDK_KEY_X) {
-            std::cout << "X key pressed\n";
+        if (key_events(event)) {
+            _drawing_area.queue_draw();
             return true;
         }
         if (file_shortcuts(event))

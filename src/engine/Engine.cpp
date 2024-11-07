@@ -28,7 +28,8 @@ namespace vipe {
         build_menu();
         build_drawing_area();
         build_panels();
-        add_events(Gdk::KEY_PRESS_MASK);
+        add_events(Gdk::KEY_PRESS_MASK | Gdk::KEY_RELEASE_MASK);
+        grab_focus();
         show_all_children();
     }
 
@@ -51,6 +52,7 @@ namespace vipe {
     {
         _overlay.add(_drawing_area);
         _drawing_area.signal_draw().connect(sigc::mem_fun(*_canva, &Canva::display_canva));
+        _drawing_area.override_background_color(Gdk::RGBA("#FFDFDF"));
         _drawing_area.add_events(Gdk::BUTTON_PRESS_MASK | Gdk::POINTER_MOTION_MASK | Gdk::BUTTON_RELEASE_MASK);
         _drawing_area.signal_button_press_event().connect(sigc::mem_fun(*this, &Engine::on_button_press));
         _drawing_area.signal_button_release_event().connect(sigc::mem_fun(*this, &Engine::on_button_release));
@@ -65,6 +67,7 @@ namespace vipe {
         _fixed_layout.put(_layer_panel->get_layer_panel(), 300, 300);
         _fixed_layout.put(_toolkit.get_tool_panel(), 10, 10);
         _fixed_layout.put(_color_palette.get_color_palette(), 40, 200);
+        _fixed_layout.put(_layer_panel->get_options_panel(), 100, 100);
         _overlay.set_overlay_pass_through(_fixed_layout, true);
     }
 }

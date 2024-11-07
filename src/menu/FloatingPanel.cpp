@@ -1,11 +1,12 @@
 #include "FloatingPanel.hpp"
 
 namespace vipe {
-    FloatingPanel::FloatingPanel(int pos_x, int pos_y)
+    FloatingPanel::FloatingPanel(int pos_x, int pos_y, bool important)
         : Gtk::Box(Gtk::ORIENTATION_VERTICAL),
         _dragging(false),
         _drag_start_x(0), _drag_start_y(0),
-        _panel_start_x(pos_x), _panel_start_y(pos_y)
+        _panel_start_x(pos_x), _panel_start_y(pos_y),
+        _important(important)
     {
         override_background_color(Gdk::RGBA("lightblue"));
         build_header();
@@ -22,7 +23,7 @@ namespace vipe {
         _floating_panel.set_orientation(Gtk::ORIENTATION_VERTICAL);
         _header_bar.set_orientation(Gtk::ORIENTATION_HORIZONTAL);
         _close_button.set_image_from_icon_name("window-close-symbolic", Gtk::ICON_SIZE_BUTTON);
-        _close_button.signal_clicked().connect(sigc::mem_fun(*this, &FloatingPanel::on_close_clicked));
+        _close_button.signal_clicked().connect(sigc::mem_fun(*this, &FloatingPanel::hide_panel));
         _header_bar.pack_end(_close_button, Gtk::PACK_SHRINK);
         event_box->add(_header_bar);
         pack_start(*event_box, Gtk::PACK_SHRINK);
@@ -34,14 +35,18 @@ namespace vipe {
         _floating_panel.pack_start(_header_bar, Gtk::PACK_SHRINK);
     }
 
-    void FloatingPanel::on_close_clicked() {
-        _floating_panel.hide();
-        _close_button.signal_button_press_event().connect([](GdkEventButton* event) {
-            return true;
-        });
+    void FloatingPanel::hide_panel()
+    {
+        hide();
     }
 
-    bool FloatingPanel::on_drag_start(GdkEventButton *event) {
+    void FloatingPanel::display_panel()
+    {
+        show_all();
+    }
+
+    bool FloatingPanel::on_drag_start(GdkEventButton *event)
+    {
         if (event->button == 1) {
             _dragging = true;
             _drag_start_x = event->x_root;
@@ -50,7 +55,8 @@ namespace vipe {
         return true;
     }
 
-    bool FloatingPanel::on_drag_motion(GdkEventMotion *event) {
+    bool FloatingPanel::on_drag_motion(GdkEventMotion *event)
+    {
         if (_dragging) {
             int new_x = _panel_start_x + (event->x_root - _drag_start_x);
             int new_y = _panel_start_y + (event->y_root - _drag_start_y);
@@ -60,10 +66,13 @@ namespace vipe {
                 fixed_layout->move(*this, new_x, new_y);
             }
         }
+        queue_draw();
+        show_all_children();
         return true;
     }
 
-    bool FloatingPanel::on_drag_stop(GdkEventButton *event) {
+    bool FloatingPanel::on_drag_stop(GdkEventButton *event)
+    {
         if (event->button == 1) {
             _dragging = false;
             _panel_start_x += (event->x_root - _drag_start_x);
@@ -71,4 +80,22 @@ namespace vipe {
         }
         return true;
     }
+
+void FloatingPanel::set_panel_body(Gtk::Box& body) {
+    // Supprimer tous les enfants existants du conteneur _floating_panel
+    for (auto* child : _floating_panel.get_children()) {
+        _floating_panel.remove(*child);
+    }
+
+    // Ajouter le nouveau widget body au conteneur _floating_panel
+    _floating_panel.pack_start(body);
+    
+    // Forcer un redessin du panneau pour afficher le nouvel élément
+    _floating_panel.show_all();
+}
+
+    void FloatingPanel::clear_panel_body() {
+        // _floating_panel.remove()
+    }
+
 }

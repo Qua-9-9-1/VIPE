@@ -21,6 +21,7 @@ namespace vipe {
         public:
             Canva();
             ~Canva();
+            void update();
             bool display_canva(const Cairo::RefPtr<Cairo::Context>& cr);
             void on_draw(const Cairo::RefPtr<Cairo::Context>& cr);
             void set_image(const std::string& filename);
@@ -29,6 +30,8 @@ namespace vipe {
             void set_color(cv::Scalar color) { _color = color; }
             void set_selected_layer(int index) { _selected_layer = index; }
             bool is_layer_visible(int index) { return _layers[index].visible; }
+            void move_view(int x, int y) { _view_offset_x += x; _view_offset_y += y; }
+            Layer& get_selected_layer() { return _layers[_selected_layer]; }
             std::vector<Layer>& get_layers() { return _layers; }
             std::string get_filename() { return _current_filename; }
             cv::Mat get_merged_image();
@@ -42,6 +45,9 @@ namespace vipe {
             void move_layer(int index, int new_index);
             void merge_layers();
         private:
+            int                  _view_offset_x = 0;
+            int                  _view_offset_y = 0;
+            std::string          _background_color;
             cv::Mat              _background;
             cv::Mat              _bg_tiled;
             cv::Mat              _image;
