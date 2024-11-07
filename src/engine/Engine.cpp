@@ -6,11 +6,25 @@ namespace vipe {
     {
         set_title("VIPE - Visual Image Processing Editor");
         set_default_size(800, 600);
+        try {
+            if (set_icon_from_file("../assets/logo.png")) {
+                std::cout << "Icône chargée avec succès." << std::endl;
+            } else {
+                std::cerr << "L'icône n'a pas pu être chargée." << std::endl;
+            }
+        } catch (const Glib::FileError& ex) {
+            std::cerr << "Erreur lors du chargement de l'icône : " << ex.what() << std::endl;
+        } catch (const Gdk::PixbufError& ex) {
+            std::cerr << "Erreur lors du traitement de l'image : " << ex.what() << std::endl;
+        }
+        queue_draw();
         _vbox.set_orientation(Gtk::ORIENTATION_VERTICAL);
         add(_vbox);
         _canvas.push_back(Canva());
         _canva = std::make_shared<Canva>(_canvas[0]);
         _layer_panel = std::make_unique<LayersPanel>(*_canva);
+        signal_key_press_event().connect(sigc::mem_fun(*this, &Engine::on_key_press));
+
         build_menu();
         build_drawing_area();
         build_panels();
