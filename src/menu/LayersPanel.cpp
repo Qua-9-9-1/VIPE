@@ -108,7 +108,6 @@ namespace vipe {
 
     void LayersPanel::on_layer_clicked(int index)
     {
-        std::cout << "Calque sélectionné : " << index << std::endl;
         _canva.set_selected_layer(index);
         update_options_panel();
     }
@@ -141,6 +140,7 @@ namespace vipe {
         _layer_options_container.set_orientation(Gtk::ORIENTATION_VERTICAL);
         _layer_options.set_panel_body(_layer_options_container);
         update_options_panel();
+        _layer_options.hide_panel();
     }
 
     void LayersPanel::update_options_panel()

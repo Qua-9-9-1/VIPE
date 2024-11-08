@@ -31,12 +31,19 @@ namespace vipe {
             void set_selected_layer(int index) { _selected_layer = index; }
             bool is_layer_visible(int index) { return _layers[index].visible; }
             void move_view(int x, int y) { _view_offset_x += x; _view_offset_y += y; }
+            void set_background_color(int r, int g, int b) { _background_color = cv::Scalar(b, g, r, 255); }
             Layer& get_selected_layer() { return _layers[_selected_layer]; }
             std::vector<Layer>& get_layers() { return _layers; }
             std::string get_filename() { return _current_filename; }
             cv::Mat get_merged_image();
-            void draw_line(int x1, int y1, int size);
-            void erase(int x1, int y1, int size);
+            void cursor_draw(int x1, int y1, int size);
+            void cursor_erase(int x1, int y1, int size);
+            void cursor_square(int x1, int y1, int size);
+            void cursor_triangle(int x1, int y1, int size);
+            void cursor_pastel(int x1, int y1, int size);
+            void cursor_spray(int x1, int y1, int size);
+            void color_fill(bool erase);
+            cv::Scalar pick_color(int x, int y);
             void recalculate_background(const cv::Size& new_size);
             void convert_to_RGBA(const cv::Mat& src, cv::Mat& dst);
             Cairo::RefPtr<Cairo::ImageSurface> create_cairo_surface(const cv::Mat& image);
@@ -47,7 +54,7 @@ namespace vipe {
         private:
             int                  _view_offset_x = 0;
             int                  _view_offset_y = 0;
-            std::string          _background_color;
+            cv::Scalar           _background_color;
             cv::Mat              _background;
             cv::Mat              _bg_tiled;
             cv::Mat              _image;

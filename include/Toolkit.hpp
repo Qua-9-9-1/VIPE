@@ -12,6 +12,7 @@ namespace vipe {
         pencil,
         brush,
         eraser,
+        pipette,
         spray,
         bucket,
         text,
@@ -38,6 +39,8 @@ namespace vipe {
         Gtk::Grid                   _icon_grid;
         std::vector<Gtk::Button*>   _tool_buttons;
         FloatingPanel               _tool_panel;
+        bool                        _smooth;
+        
     };
 
 }

@@ -50,6 +50,8 @@ namespace vipe {
             bool on_button_press(GdkEventButton* event);
             bool on_button_release(GdkEventButton* event);
             bool on_motion_notify(GdkEventMotion* event);
+            void canva_click_action(int x, int y, GdkEventButton* event);
+            void canva_action(int x, int y);
             bool on_key_press(GdkEventKey* event);
             bool key_events(GdkEventKey* event);
             bool file_shortcuts(GdkEventKey* event);
@@ -64,6 +66,6 @@ namespace vipe {
             Gtk::Fixed              _fixed_layout;
             Toolkit                 _toolkit;
             std::unique_ptr<LayersPanel> _layer_panel;
-            ColorPalette            _color_palette;
+            std::shared_ptr<ColorPalette> _color_palette;
     };
 }

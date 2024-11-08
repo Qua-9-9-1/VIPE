@@ -1,7 +1,7 @@
 #include "Canva.hpp"
 
 namespace vipe {
-    Canva::Canva(): _prev_x(-1), _prev_y(-1), _selected_layer(0)
+    Canva::Canva(): _prev_x(-1), _prev_y(-1), _selected_layer(0), _background_color(98, 210, 98, 255)
     {
         _background = cv::imread("../assets/bg.png", cv::IMREAD_UNCHANGED);
         if (_background.empty()) {
@@ -18,6 +18,12 @@ namespace vipe {
             cv::Mat image_rgba;
             cv::Mat bg_rgba;
 
+            cr->set_source_rgba(
+                _background_color[2] / 255.0,
+                _background_color[1] / 255.0,
+                _background_color[0] / 255.0,
+                _background_color[3] / 255.0);
+            cr->paint();
             convert_to_RGBA(_bg_tiled, bg_rgba);
             auto bg_surface = create_cairo_surface(bg_rgba);
             cr->set_source(bg_surface, _view_offset_x, _view_offset_y);
@@ -68,36 +74,6 @@ namespace vipe {
         recalculate_background(cv::Size(_image.cols, _image.rows));
         _layers[0].image = _image;
         
-    }
-
-    void Canva::draw_line(int x1, int y1, int size)
-    {
-        auto& layer = _layers[_selected_layer].image;
-
-        x1 -= _view_offset_x;
-        y1 -= _view_offset_y;
-        if (layer.empty()) {
-            return;
-        }
-        if (layer.channels() == 4 && (_prev_x != -1 && _prev_y != -1)) {
-            cv::line(layer, cv::Point(_prev_x, _prev_y), cv::Point(x1, y1), _color, size);
-        }
-        set_point_pos(x1, y1);
-    }
-
-    void Canva::erase(int x1, int y1, int size)
-    {
-        auto& layer = _layers[_selected_layer].image;
-
-        x1 -= _view_offset_x;
-        y1 -= _view_offset_y;
-        if (layer.empty()) {
-            return;
-        }
-        if (layer.channels() == 4 && (_prev_x != -1 && _prev_y != -1)) {
-            cv::line(layer, cv::Point(_prev_x, _prev_y), cv::Point(x1, y1), cv::Scalar(0, 0, 0, 0), size);
-        }
-        set_point_pos(x1, y1);
     }
 
     void Canva::convert_to_RGBA(const cv::Mat& src, cv::Mat& dst)

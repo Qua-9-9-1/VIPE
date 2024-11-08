@@ -10,9 +10,9 @@ namespace vipe {
 
     void Toolkit::build_tool_grid()
     {
-        std::vector<std::string> tool_names = {"Pencil", "Brush", "Eraser", "Spray", "Bucket", "Text",
+        std::vector<std::string> tool_names = {"Pencil", "Brush", "Eraser", "Pipette", "Spray", "Bucket", "Text",
                                             "Line", "Rectangle", "Circle", "Lasso", "Magic Wand", "Shape", "Gradient"};
-        std::vector<Tool> tools = {pencil, brush, eraser, spray, bucket, text, line, rectangle, circle,
+        std::vector<Tool> tools = {pencil, brush, eraser, pipette, spray, bucket, text, line, rectangle, circle,
                                 lasso, magic_wand, shape, gradient};
         _icon_grid.set_column_homogeneous(true);
         _icon_grid.set_row_homogeneous(true);
@@ -33,7 +33,6 @@ namespace vipe {
 
     void Toolkit::on_tool_selected(Tool tool) {
         _current_tool = tool;
-        std::cout << "Outil sélectionné : " << tool << std::endl;
     }
 
 }
