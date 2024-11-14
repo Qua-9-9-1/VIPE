@@ -3,14 +3,20 @@
 namespace vipe {
 
 bool Engine::on_button_press(GdkEventButton* event) {
-    if (event->type == GDK_BUTTON_PRESS && (event->button == 1 || event->button == 3)) {
-        canva_click_action(event->x, event->y, event);
+    if (event->type == GDK_BUTTON_PRESS) {
+        if ((event->button == 1 || event->button == 3)) {
+            canva_click_action(event->x, event->y, event);
+        } else if (event->button == 2) {
+            _canva->set_point_pos(event->x, event->y);
+        }
+        return true;
     }
-    return true;
+    return false;
 }
 
 bool Engine::on_button_release(GdkEventButton* event) {
-    if (event->type == GDK_BUTTON_RELEASE && (event->button == 1 || event->button == 3)) {
+    if (event->type == GDK_BUTTON_RELEASE &&
+        (event->button == 1 || event->button == 2 || event->button == 3)) {
         _canva->set_point_pos(-1, -1);
         _drawing_area.queue_draw();
     }
@@ -20,20 +26,27 @@ bool Engine::on_button_release(GdkEventButton* event) {
 bool Engine::on_motion_notify(GdkEventMotion* event) {
     if (event->state & (GDK_BUTTON1_MASK | GDK_BUTTON3_MASK)) {
         canva_action(event->x, event->y);
+        _drawing_area.queue_draw();
+    } else if (event->state & GDK_BUTTON2_MASK) {
+        _canva->cursor_move_view(event->x, event->y);
+        _drawing_area.queue_draw();
     }
     return true;
 }
 
 void Engine::canva_click_action(int x, int y, GdkEventButton* event) {
-    if (event && event->button == 1) {
-        _canva->set_color(_color_palette->get_first_color());
-    } else if (event && event->button == 3) {
-        _canva->set_color(_color_palette->get_second_color());
-    }
-
     auto current_tool = _toolkit.get_current_tool();
 
-    if (event && current_tool == vipe::Tool::pipette) {
+    if (event) {
+        if (event->button == 1) {
+            _canva->set_color(_color_palette->get_first_color());
+        } else if (event->button == 2) {
+            _canva->set_point_pos(x, y);
+        } else if (event->button == 3) {
+            _canva->set_color(_color_palette->get_second_color());
+        }
+    }
+    if (current_tool == vipe::Tool::pipette) {
         if (event->button == 1) {
             _color_palette->set_first_color(_canva->pick_color(x, y));
         } else if (event->button == 3) {
@@ -64,8 +77,34 @@ void Engine::canva_action(int x, int y) {
     } else if (current_tool == vipe::Tool::lasso) {
         _canva->color_fill(0);
     }
+}
 
-    _drawing_area.queue_draw();
+bool Engine::on_scroll(GdkEventScroll* event) {
+    // bool is_ctrl  = event->state & GDK_CONTROL_MASK;
+    // bool is_shift = event->state & GDK_SHIFT_MASK;
+
+    if (event->direction == GDK_SCROLL_UP) {
+        // if (is_ctrl) {
+        //     _canva->zoom_view(0.1);
+        // } else if (is_shift) {
+        //     _canva->move_view(50, 0);
+        // } else {
+        _canva->move_view(0, -50);
+        // }
+        _drawing_area.queue_draw();
+        return true;
+    } else if (event->direction == GDK_SCROLL_DOWN) {
+        // if (is_ctrl) {
+        //     _canva->zoom_view(-0.1);
+        // } else if (is_shift) {
+        //     _canva->move_view(-50, 0);
+        // } else {
+        _canva->move_view(0, 50);
+        // }
+        _drawing_area.queue_draw();
+        return true;
+    }
+    return false;
 }
 
 bool Engine::file_shortcuts(GdkEventKey* event) {
@@ -93,21 +132,40 @@ bool Engine::file_shortcuts(GdkEventKey* event) {
     return false;
 }
 
+bool Engine::canva_shortcuts(GdkEventKey* event) {
+    if ((event->keyval == GDK_KEY_b || event->keyval == GDK_KEY_B)) {
+        _canva->center_and_zoom_picture(get_width(), get_height());
+        _drawing_area.queue_draw();
+        return true;
+    }
+    return false;
+}
+
 bool Engine::key_events(GdkEventKey* event) {
     if ((event->keyval == GDK_KEY_Z || event->keyval == GDK_KEY_z)) {
-        _canva->move_view(0, -10);
+        _canva->move_view(0, -50);
         return true;
     }
     if ((event->keyval == GDK_KEY_S || event->keyval == GDK_KEY_s)) {
-        _canva->move_view(0, 10);
+        _canva->move_view(0, 50);
         return true;
     }
     if ((event->keyval == GDK_KEY_Q || event->keyval == GDK_KEY_q)) {
-        _canva->move_view(-10, 0);
+        _canva->move_view(-50, 0);
         return true;
     }
     if ((event->keyval == GDK_KEY_D || event->keyval == GDK_KEY_d)) {
-        _canva->move_view(10, 0);
+        _canva->move_view(50, 0);
+        return true;
+    }
+    if ((event->keyval == GDK_KEY_p || event->keyval == GDK_KEY_P) ||
+        (event->keyval == GDK_KEY_KP_Add)) {
+        _canva->zoom_view(0.1);
+        return true;
+    }
+    if ((event->keyval == GDK_KEY_m || event->keyval == GDK_KEY_M) ||
+        (event->keyval == GDK_KEY_KP_Subtract)) {
+        _canva->zoom_view(-0.1);
         return true;
     }
     return false;
@@ -115,6 +173,8 @@ bool Engine::key_events(GdkEventKey* event) {
 
 bool Engine::on_key_press(GdkEventKey* event) {
     if ((event->state & GDK_CONTROL_MASK) && file_shortcuts(event))
+        return true;
+    if ((event->state & GDK_CONTROL_MASK) && canva_shortcuts(event))
         return true;
     if (key_events(event)) {
         _drawing_area.queue_draw();

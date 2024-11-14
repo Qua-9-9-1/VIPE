@@ -1,7 +1,9 @@
 #include "Canva.hpp"
 
 namespace vipe {
-Canva::Canva() : _prev_x(-1), _prev_y(-1), _selected_layer(0), _background_color(98, 210, 98, 255) {
+Canva::Canva()
+    : _view_offset_x(0), _view_offset_y(0), _zoom_factor(1.0), _prev_x(-1), _prev_y(-1),
+      _selected_layer(0), _background_color(255, 235, 225, 255) {
     _background = cv::imread("../assets/bg.png", cv::IMREAD_UNCHANGED);
     if (_background.empty()) {
         std::cerr << "Erreur lors du chargement de l'image de fond." << std::endl;
@@ -12,23 +14,30 @@ Canva::Canva() : _prev_x(-1), _prev_y(-1), _selected_layer(0), _background_color
 Canva::~Canva() {}
 
 bool Canva::display_canva(const Cairo::RefPtr<Cairo::Context>& cr) {
+    cr->set_source_rgba(_background_color[2] / 255.0, _background_color[1] / 255.0,
+                        _background_color[0] / 255.0, _background_color[3] / 255.0);
+    cr->paint();
+    if (_image.empty())
+        return false;
     try {
         cv::Mat image_rgba;
         cv::Mat bg_rgba;
 
-        cr->set_source_rgba(_background_color[2] / 255.0, _background_color[1] / 255.0,
-                            _background_color[0] / 255.0, _background_color[3] / 255.0);
-        cr->paint();
         convert_to_RGBA(_bg_tiled, bg_rgba);
-        auto bg_surface = create_cairo_surface(bg_rgba);
-        cr->set_source(bg_surface, _view_offset_x, _view_offset_y);
-        cr->paint();
+        auto bg_pattern = create_repeating_pattern(bg_rgba);
+        cr->set_source(bg_pattern);
+        cr->rectangle(_view_offset_x, _view_offset_y, _image.cols * _zoom_factor,
+                      _image.rows * _zoom_factor);
+        cr->fill();
         for (const auto& layer : _layers) {
             if (!layer.visible)
                 continue;
             convert_to_RGBA(layer.image, image_rgba);
+            cv::resize(image_rgba, image_rgba, cv::Size(), _zoom_factor, _zoom_factor,
+                       cv::INTER_NEAREST);
             auto surface = create_cairo_surface(image_rgba);
             cr->set_source(surface, _view_offset_x, _view_offset_y);
+            cr->scale(_zoom_factor, _zoom_factor);
             cr->paint_with_alpha(layer.opacity / 100.0);
         }
         return true;
@@ -84,6 +93,23 @@ Cairo::RefPtr<Cairo::ImageSurface> Canva::create_cairo_surface(const cv::Mat& im
     if (surface->get_status() != CAIRO_STATUS_SUCCESS)
         throw std::runtime_error("Erreur lors de la création de la surface.");
     return surface;
+}
+
+Cairo::RefPtr<Cairo::Pattern> Canva::create_repeating_pattern(const cv::Mat& image) {
+    // Créer une surface Cairo à partir de l'image
+    int  stride  = Cairo::ImageSurface::format_stride_for_width(Cairo::FORMAT_ARGB32, image.cols);
+    auto surface = Cairo::ImageSurface::create(image.data, Cairo::FORMAT_ARGB32, image.cols,
+                                               image.rows, stride);
+
+    if (surface->get_status() != CAIRO_STATUS_SUCCESS) {
+        throw std::runtime_error("Erreur lors de la création de la surface.");
+    }
+
+    // Créer un motif répétitif à partir de cette surface
+    auto pattern = Cairo::SurfacePattern::create(surface);
+    pattern->set_extend(Cairo::Extend::EXTEND_REPEAT);
+
+    return pattern;
 }
 
 cv::Mat Canva::get_merged_image() {

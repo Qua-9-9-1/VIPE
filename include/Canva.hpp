@@ -26,17 +26,17 @@ class Canva {
     void on_draw(const Cairo::RefPtr<Cairo::Context>& cr);
     void set_image(const std::string& filename);
     void set_filename(const std::string& filename) { _current_filename = filename; }
-    void set_point_pos(int x, int y) {
-        _prev_x = x;
-        _prev_y = y;
-    }
+    void set_point_pos(int x, int y);
     void set_color(cv::Scalar color) { _color = color; }
     void set_selected_layer(int index) { _selected_layer = index; }
     bool is_layer_visible(int index) { return _layers[index].visible; }
-    void move_view(int x, int y) {
-        _view_offset_x += x;
-        _view_offset_y += y;
-    }
+    void set_view_offset(int x, int y);
+    void move_view(int x, int y, bool apply_zoom = true);
+    void cursor_move_view(int x, int y);
+    void set_zoom_factor(double factor);
+    void zoom_view(double factor);
+    void apply_canva_drawing_factors(int& x, int& y);
+    void center_and_zoom_picture(int window_width, int window_height);
     void set_background_color(int r, int g, int b) { _background_color = cv::Scalar(b, g, r, 255); }
     Layer&                             get_selected_layer() { return _layers[_selected_layer]; }
     std::vector<Layer>&                get_layers() { return _layers; }
@@ -53,14 +53,16 @@ class Canva {
     void                               recalculate_background(const cv::Size& new_size);
     void                               convert_to_RGBA(const cv::Mat& src, cv::Mat& dst);
     Cairo::RefPtr<Cairo::ImageSurface> create_cairo_surface(const cv::Mat& image);
+    Cairo::RefPtr<Cairo::Pattern>      create_repeating_pattern(const cv::Mat& image);
     void                               add_layer();
     void                               delete_layer(int index);
     void                               move_layer(int index, int new_index);
     void                               merge_layers();
 
   private:
-    int                _view_offset_x = 0;
-    int                _view_offset_y = 0;
+    int                _view_offset_x;
+    int                _view_offset_y;
+    double             _zoom_factor;
     cv::Scalar         _background_color;
     cv::Mat            _background;
     cv::Mat            _bg_tiled;

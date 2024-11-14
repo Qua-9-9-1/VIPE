@@ -30,6 +30,7 @@ Engine::Engine() : _menu(*this) {
     build_panels();
     add_events(Gdk::KEY_PRESS_MASK | Gdk::KEY_RELEASE_MASK);
     grab_focus();
+    open_file_from_path("/home/quentin_d2/Pictures/testing.png");
     show_all_children();
 }
 
@@ -50,7 +51,7 @@ void Engine::build_menu() {
 void Engine::build_drawing_area() {
     _overlay.add(_drawing_area);
     _drawing_area.signal_draw().connect(sigc::mem_fun(*_canva, &Canva::display_canva));
-    _drawing_area.add_events(Gdk::BUTTON_PRESS_MASK | Gdk::POINTER_MOTION_MASK |
+    _drawing_area.add_events(Gdk::SCROLL_MASK | Gdk::BUTTON_PRESS_MASK | Gdk::POINTER_MOTION_MASK |
                              Gdk::BUTTON_RELEASE_MASK);
     _drawing_area.signal_button_press_event().connect(
         sigc::mem_fun(*this, &Engine::on_button_press));
@@ -58,6 +59,7 @@ void Engine::build_drawing_area() {
         sigc::mem_fun(*this, &Engine::on_button_release));
     _drawing_area.signal_motion_notify_event().connect(
         sigc::mem_fun(*this, &Engine::on_motion_notify));
+    _drawing_area.signal_scroll_event().connect(sigc::mem_fun(*this, &Engine::on_scroll));
 }
 
 void Engine::build_panels() {

@@ -5,6 +5,7 @@ namespace vipe {
 void Engine::new_file() {
     _canvas.push_back(Canva());
     _canva = std::make_shared<Canva>(_canvas.back());
+    _canva->center_and_zoom_picture(get_width(), get_height());
     _drawing_area.queue_draw();
 }
 
@@ -21,15 +22,14 @@ void Engine::open_file() {
     int result = dialog.run();
     if (result == Gtk::RESPONSE_OK) {
         std::string filename = dialog.get_filename();
-        _canva->set_image(filename);
-        _canva->set_filename(filename);
-        _drawing_area.queue_draw();
+        open_file_from_path(filename);
     }
 }
 
 void Engine::open_file_from_path(const std::string& filename) {
     _canva->set_image(filename);
     _canva->set_filename(filename);
+    _canva->center_and_zoom_picture(get_width(), get_height());
     _drawing_area.queue_draw();
 }
 

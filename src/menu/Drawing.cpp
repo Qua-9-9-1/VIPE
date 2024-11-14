@@ -2,11 +2,15 @@
 
 namespace vipe {
 
+void Canva::set_point_pos(int x, int y) {
+    _prev_x = x;
+    _prev_y = y;
+}
+
 void Canva::cursor_draw(int x1, int y1, int size) {
     auto& layer = _layers[_selected_layer].image;
 
-    x1 -= _view_offset_x;
-    y1 -= _view_offset_y;
+    apply_canva_drawing_factors(x1, y1);
     if (layer.empty()) {
         return;
     }
@@ -19,8 +23,7 @@ void Canva::cursor_draw(int x1, int y1, int size) {
 void Canva::cursor_erase(int x1, int y1, int size) {
     auto& layer = _layers[_selected_layer].image;
 
-    x1 -= _view_offset_x;
-    y1 -= _view_offset_y;
+    apply_canva_drawing_factors(x1, y1);
     if (layer.empty()) {
         return;
     }
@@ -33,9 +36,8 @@ void Canva::cursor_erase(int x1, int y1, int size) {
 
 void Canva::cursor_square(int x1, int y1, int size) {
     auto& layer = _layers[_selected_layer].image;
-    x1 -= _view_offset_x;
-    y1 -= _view_offset_y;
 
+    apply_canva_drawing_factors(x1, y1);
     if (layer.empty())
         return;
 
@@ -58,9 +60,8 @@ void Canva::cursor_square(int x1, int y1, int size) {
 
 void Canva::cursor_triangle(int x1, int y1, int size) {
     auto& layer = _layers[_selected_layer].image;
-    x1 -= _view_offset_x;
-    y1 -= _view_offset_y;
 
+    apply_canva_drawing_factors(x1, y1);
     if (layer.empty())
         return;
 
@@ -86,9 +87,8 @@ void Canva::cursor_triangle(int x1, int y1, int size) {
 
 void Canva::cursor_pastel(int x1, int y1, int size) {
     auto& layer = _layers[_selected_layer].image;
-    x1 -= _view_offset_x;
-    y1 -= _view_offset_y;
 
+    apply_canva_drawing_factors(x1, y1);
     if (layer.empty())
         return;
 
@@ -104,9 +104,8 @@ void Canva::cursor_pastel(int x1, int y1, int size) {
 
 void Canva::cursor_spray(int x1, int y1, int size) {
     auto& layer = _layers[_selected_layer].image;
-    x1 -= _view_offset_x;
-    y1 -= _view_offset_y;
 
+    apply_canva_drawing_factors(x1, y1);
     if (layer.empty())
         return;
 
@@ -138,9 +137,7 @@ void Canva::color_fill(bool erase) {
 cv::Scalar Canva::pick_color(int x, int y) {
     auto layer = _layers[_selected_layer].image;
 
-    x -= _view_offset_x;
-    y -= _view_offset_y;
-
+    apply_canva_drawing_factors(x, y);
     if (x < 0 || x >= layer.cols || y < 0 || y >= layer.rows) {
         return cv::Scalar(0, 0, 0, 0);
     }

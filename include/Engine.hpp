@@ -50,11 +50,13 @@ class Engine : public Gtk::Window {
     bool on_button_press(GdkEventButton* event);
     bool on_button_release(GdkEventButton* event);
     bool on_motion_notify(GdkEventMotion* event);
+    bool on_scroll(GdkEventScroll* event);
     void canva_click_action(int x, int y, GdkEventButton* event);
     void canva_action(int x, int y);
     bool on_key_press(GdkEventKey* event);
     bool key_events(GdkEventKey* event);
     bool file_shortcuts(GdkEventKey* event);
+    bool canva_shortcuts(GdkEventKey* event);
 
   private:
     Menu                          _menu;
