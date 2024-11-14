@@ -15,57 +15,57 @@
 #include "ColorPalette.hpp"
 
 namespace vipe {
-    class Menu;
-    class Canva;
-    class Toolkit;
+class Menu;
+class Canva;
+class Toolkit;
 
-    class Engine : public Gtk::Window {
-        public:
-            Engine();
-            ~Engine();
-            void build_menu();
-            void build_drawing_area();
-            void build_panels();
-            Gtk::VBox& get_vbox() { return _vbox; }
-            Gtk::DrawingArea& get_drawing_area() { return _drawing_area; }
-            bool onDraw(const Cairo::RefPtr<Cairo::Context>& cr);
-            // file options
-            void create_file_option();
-            void create_display_option();
-            void create_image_option();
-            void create_effect_option();
-            void new_file();
-            void open_file();
-            void open_file_from_path(const std::string& filename);
-            void save_file();
-            void save_as_file();
-            void close_file();
-            // display options
-            void fullscreen();
-            // image options
-            void resize_image();
-            // effect options
-            void blur_effect();
-            //events
-            bool on_button_press(GdkEventButton* event);
-            bool on_button_release(GdkEventButton* event);
-            bool on_motion_notify(GdkEventMotion* event);
-            void canva_click_action(int x, int y, GdkEventButton* event);
-            void canva_action(int x, int y);
-            bool on_key_press(GdkEventKey* event);
-            bool key_events(GdkEventKey* event);
-            bool file_shortcuts(GdkEventKey* event);
-        private:
+class Engine : public Gtk::Window {
+  public:
+    Engine();
+    ~Engine();
+    void              build_menu();
+    void              build_drawing_area();
+    void              build_panels();
+    Gtk::VBox&        get_vbox() { return _vbox; }
+    Gtk::DrawingArea& get_drawing_area() { return _drawing_area; }
+    bool              onDraw(const Cairo::RefPtr<Cairo::Context>& cr);
+    // file options
+    void create_file_option();
+    void create_display_option();
+    void create_image_option();
+    void create_effect_option();
+    void new_file();
+    void open_file();
+    void open_file_from_path(const std::string& filename);
+    void save_file();
+    void save_as_file();
+    void close_file();
+    // display options
+    void fullscreen();
+    // image options
+    void resize_image();
+    // effect options
+    void blur_effect();
+    // events
+    bool on_button_press(GdkEventButton* event);
+    bool on_button_release(GdkEventButton* event);
+    bool on_motion_notify(GdkEventMotion* event);
+    void canva_click_action(int x, int y, GdkEventButton* event);
+    void canva_action(int x, int y);
+    bool on_key_press(GdkEventKey* event);
+    bool key_events(GdkEventKey* event);
+    bool file_shortcuts(GdkEventKey* event);
 
-            Menu                    _menu;
-            Gtk::VBox               _vbox;
-            Gtk::DrawingArea        _drawing_area;
-            std::shared_ptr<Canva>  _canva;
-            std::vector<Canva>      _canvas;
-            Gtk::Overlay            _overlay;
-            Gtk::Fixed              _fixed_layout;
-            Toolkit                 _toolkit;
-            std::unique_ptr<LayersPanel> _layer_panel;
-            std::shared_ptr<ColorPalette> _color_palette;
-    };
-}
+  private:
+    Menu                          _menu;
+    Gtk::VBox                     _vbox;
+    Gtk::DrawingArea              _drawing_area;
+    std::shared_ptr<Canva>        _canva;
+    std::vector<Canva>            _canvas;
+    Gtk::Overlay                  _overlay;
+    Gtk::Fixed                    _fixed_layout;
+    Toolkit                       _toolkit;
+    std::unique_ptr<LayersPanel>  _layer_panel;
+    std::shared_ptr<ColorPalette> _color_palette;
+};
+} // namespace vipe

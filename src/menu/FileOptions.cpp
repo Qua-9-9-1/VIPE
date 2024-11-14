@@ -2,90 +2,84 @@
 
 namespace vipe {
 
-    void Engine::new_file()
-    {
-        _canvas.push_back(Canva());
-        _canva = std::make_shared<Canva>(_canvas.back());
-        _drawing_area.queue_draw();
-    }
+void Engine::new_file() {
+    _canvas.push_back(Canva());
+    _canva = std::make_shared<Canva>(_canvas.back());
+    _drawing_area.queue_draw();
+}
 
-    void Engine::open_file()
-    {
-        Gtk::FileChooserDialog dialog("Choisir une image", Gtk::FILE_CHOOSER_ACTION_OPEN);
-        dialog.set_transient_for(*this);
-        dialog.add_button("_Annuler", Gtk::RESPONSE_CANCEL);
-        dialog.add_button("_Ouvrir", Gtk::RESPONSE_OK);
-        auto filter_image = Gtk::FileFilter::create();
-        filter_image->set_name("Images");
-        filter_image->add_mime_type("image/jpeg");
-        filter_image->add_mime_type("image/png");
-        dialog.add_filter(filter_image);
-        int result = dialog.run();
-        if (result == Gtk::RESPONSE_OK) {
-            std::string filename = dialog.get_filename();
-            _canva->set_image(filename);
-            _canva->set_filename(filename);
-            _drawing_area.queue_draw();
-        }
-    }
-
-    void Engine::open_file_from_path(const std::string& filename)
-    {
+void Engine::open_file() {
+    Gtk::FileChooserDialog dialog("Choisir une image", Gtk::FILE_CHOOSER_ACTION_OPEN);
+    dialog.set_transient_for(*this);
+    dialog.add_button("_Annuler", Gtk::RESPONSE_CANCEL);
+    dialog.add_button("_Ouvrir", Gtk::RESPONSE_OK);
+    auto filter_image = Gtk::FileFilter::create();
+    filter_image->set_name("Images");
+    filter_image->add_mime_type("image/jpeg");
+    filter_image->add_mime_type("image/png");
+    dialog.add_filter(filter_image);
+    int result = dialog.run();
+    if (result == Gtk::RESPONSE_OK) {
+        std::string filename = dialog.get_filename();
         _canva->set_image(filename);
         _canva->set_filename(filename);
         _drawing_area.queue_draw();
     }
+}
 
-    void Engine::save_file()
-    {
-        auto filename = _canva->get_filename();
-        auto image = _canva->get_merged_image();
+void Engine::open_file_from_path(const std::string& filename) {
+    _canva->set_image(filename);
+    _canva->set_filename(filename);
+    _drawing_area.queue_draw();
+}
 
-        if (image.empty()) {
-            std::cerr << "Aucune image à sauvegarder." << std::endl;
-            return;
-        }
-        if (filename.empty()) {
-            save_as_file();
-            return;
-        }
-        cv::imwrite(filename, image);
+void Engine::save_file() {
+    auto filename = _canva->get_filename();
+    auto image    = _canva->get_merged_image();
+
+    if (image.empty()) {
+        std::cerr << "Aucune image à sauvegarder." << std::endl;
+        return;
+    }
+    if (filename.empty()) {
+        save_as_file();
+        return;
+    }
+    cv::imwrite(filename, image);
+}
+
+void Engine::save_as_file() {
+    auto image = _canva->get_merged_image();
+
+    if (image.empty()) {
+        std::cerr << "Aucune image à sauvegarder." << std::endl;
+        return;
     }
 
-    void Engine::save_as_file()
-    {
-        auto image = _canva->get_merged_image();
+    Gtk::FileChooserDialog dialog("Enregistrer l'image", Gtk::FILE_CHOOSER_ACTION_SAVE);
+    dialog.set_transient_for(*this);
+    dialog.add_button("_Annuler", Gtk::RESPONSE_CANCEL);
+    dialog.add_button("_Enregistrer", Gtk::RESPONSE_OK);
 
-        if (image.empty()) {
-            std::cerr << "Aucune image à sauvegarder." << std::endl;
-            return;
-        }
+    auto filter_image = Gtk::FileFilter::create();
+    filter_image->set_name("Images");
+    filter_image->add_mime_type("image/jpeg");
+    filter_image->add_mime_type("image/png");
+    dialog.add_filter(filter_image);
 
-        Gtk::FileChooserDialog dialog("Enregistrer l'image", Gtk::FILE_CHOOSER_ACTION_SAVE);
-        dialog.set_transient_for(*this);
-        dialog.add_button("_Annuler", Gtk::RESPONSE_CANCEL);
-        dialog.add_button("_Enregistrer", Gtk::RESPONSE_OK);
+    int result = dialog.run();
 
-        auto filter_image = Gtk::FileFilter::create();
-        filter_image->set_name("Images");
-        filter_image->add_mime_type("image/jpeg");
-        filter_image->add_mime_type("image/png");
-        dialog.add_filter(filter_image);
+    if (result == Gtk::RESPONSE_OK) {
+        std::string filename = dialog.get_filename();
 
-        int result = dialog.run();
-
-        if (result == Gtk::RESPONSE_OK) {
-            std::string filename = dialog.get_filename();
-
-            _canva->set_filename(filename);
-            cv::imwrite(_canva->get_filename(), image);
-        }
-    }
-
-    void Engine::close_file()
-    {
-        _canvas.pop_back();
-        _canva = std::make_shared<Canva>(_canvas.back());
-        _drawing_area.queue_draw();
+        _canva->set_filename(filename);
+        cv::imwrite(_canva->get_filename(), image);
     }
 }
+
+void Engine::close_file() {
+    _canvas.pop_back();
+    _canva = std::make_shared<Canva>(_canvas.back());
+    _drawing_area.queue_draw();
+}
+} // namespace vipe

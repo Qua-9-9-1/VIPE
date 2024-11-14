@@ -8,39 +8,38 @@
 
 namespace vipe {
 
-    enum Tool {
-        pencil,
-        brush,
-        eraser,
-        pipette,
-        spray,
-        bucket,
-        text,
-        line,
-        rectangle,
-        circle,
-        lasso,
-        magic_wand,
-        shape,
-        gradient
-    };
+enum Tool {
+    pencil,
+    brush,
+    eraser,
+    pipette,
+    spray,
+    bucket,
+    text,
+    line,
+    rectangle,
+    circle,
+    lasso,
+    magic_wand,
+    shape,
+    gradient
+};
 
-    class Toolkit {
-    public:
-        Toolkit();
-        ~Toolkit();
-        int get_current_tool() { return _current_tool; }
-        void build_tool_grid();
-        void on_tool_selected(Tool tool);
-        FloatingPanel &get_tool_panel() { return _tool_panel; }
+class Toolkit {
+  public:
+    Toolkit();
+    ~Toolkit();
+    int            get_current_tool() { return _current_tool; }
+    void           build_tool_grid();
+    void           on_tool_selected(Tool tool);
+    FloatingPanel& get_tool_panel() { return _tool_panel; }
 
-    private:
-        Tool                        _current_tool;
-        Gtk::Grid                   _icon_grid;
-        std::vector<Gtk::Button*>   _tool_buttons;
-        FloatingPanel               _tool_panel;
-        bool                        _smooth;
-        
-    };
+  private:
+    Tool                      _current_tool;
+    Gtk::Grid                 _icon_grid;
+    std::vector<Gtk::Button*> _tool_buttons;
+    FloatingPanel             _tool_panel;
+    bool                      _smooth;
+};
 
-}
+} // namespace vipe
