@@ -5,6 +5,7 @@ namespace vipe {
 void Engine::new_file() {
     _canvas.push_back(Canva());
     _canva = std::make_shared<Canva>(_canvas.back());
+    _canva->create_blank_picture(800, 600);
     _canva->center_and_zoom_picture(get_width(), get_height());
     _drawing_area.queue_draw();
 }

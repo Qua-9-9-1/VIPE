@@ -19,10 +19,9 @@ Engine::Engine() : _menu(*this) {
     queue_draw();
     _vbox.set_orientation(Gtk::ORIENTATION_VERTICAL);
     add(_vbox);
-    _canvas.push_back(Canva());
-    _canva         = std::make_shared<Canva>(_canvas[0]);
+    new_file();
     _color_palette = std::make_shared<ColorPalette>();
-    _layer_panel   = std::make_unique<LayersPanel>(*_canva);
+    _layer_panel   = std::make_unique<LayersPanel>(*_canva, _drawing_area);
     signal_key_press_event().connect(sigc::mem_fun(*this, &Engine::on_key_press));
 
     build_menu();

@@ -7,12 +7,8 @@ void Canva::set_view_offset(int x, int y) {
 }
 
 void Canva::move_view(int x, int y, bool apply_zoom) {
-    _view_offset_x += x;
-    _view_offset_y += y;
-    if (apply_zoom) {
-        _view_offset_x /= _zoom_factor;
-        _view_offset_y /= _zoom_factor;
-    }
+    _view_offset_x += apply_zoom ? x / _zoom_factor : x;
+    _view_offset_y += apply_zoom ? y / _zoom_factor : y;
 }
 
 void Canva::cursor_move_view(int x, int y) {

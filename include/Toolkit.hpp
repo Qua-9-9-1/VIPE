@@ -31,15 +31,15 @@ class Toolkit {
     ~Toolkit();
     int            get_current_tool() { return _current_tool; }
     void           build_tool_grid();
-    void           on_tool_selected(Tool tool);
+    void           on_tool_selected(Tool tool, Gtk::ToggleButton* clicked_button);
     FloatingPanel& get_tool_panel() { return _tool_panel; }
 
   private:
-    Tool                      _current_tool;
-    Gtk::Grid                 _icon_grid;
-    std::vector<Gtk::Button*> _tool_buttons;
-    FloatingPanel             _tool_panel;
-    bool                      _smooth;
+    Tool                            _current_tool;
+    Gtk::Grid                       _icon_grid;
+    std::vector<Gtk::ToggleButton*> _tool_buttons;
+    Gtk::ToggleButton*              _last_selected_button;
+    FloatingPanel                   _tool_panel;
 };
 
 } // namespace vipe

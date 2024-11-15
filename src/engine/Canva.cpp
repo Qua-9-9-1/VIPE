@@ -32,6 +32,7 @@ bool Canva::display_canva(const Cairo::RefPtr<Cairo::Context>& cr) {
         for (const auto& layer : _layers) {
             if (!layer.visible)
                 continue;
+            cr->save();
             convert_to_RGBA(layer.image, image_rgba);
             cv::resize(image_rgba, image_rgba, cv::Size(), _zoom_factor, _zoom_factor,
                        cv::INTER_NEAREST);
@@ -39,12 +40,19 @@ bool Canva::display_canva(const Cairo::RefPtr<Cairo::Context>& cr) {
             cr->set_source(surface, _view_offset_x, _view_offset_y);
             cr->scale(_zoom_factor, _zoom_factor);
             cr->paint_with_alpha(layer.opacity / 100.0);
+            cr->restore();
         }
         return true;
     } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
         return false;
     }
+}
+
+void Canva::create_blank_picture(int width, int height) {
+    _image = cv::Mat(width, height, CV_8UC4, cv::Scalar(255, 255, 255, 255));
+    recalculate_background(cv::Size(_image.cols, _image.rows));
+    _layers[0].image = _image;
 }
 
 void Canva::recalculate_background(const cv::Size& new_size) {

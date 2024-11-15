@@ -23,6 +23,7 @@ class Canva {
     ~Canva();
     void update();
     bool display_canva(const Cairo::RefPtr<Cairo::Context>& cr);
+    void create_blank_picture(int width, int height);
     void on_draw(const Cairo::RefPtr<Cairo::Context>& cr);
     void set_image(const std::string& filename);
     void set_filename(const std::string& filename) { _current_filename = filename; }
@@ -39,6 +40,7 @@ class Canva {
     void center_and_zoom_picture(int window_width, int window_height);
     void set_background_color(int r, int g, int b) { _background_color = cv::Scalar(b, g, r, 255); }
     Layer&                             get_selected_layer() { return _layers[_selected_layer]; }
+    int                                get_selected_layer_index() { return _selected_layer; }
     std::vector<Layer>&                get_layers() { return _layers; }
     std::string                        get_filename() { return _current_filename; }
     cv::Mat                            get_merged_image();
