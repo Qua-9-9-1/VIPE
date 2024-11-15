@@ -26,8 +26,8 @@ class FloatingPanel : public Gtk::Box {
     double       _drag_start_x, _drag_start_y;
     int          _panel_start_x, _panel_start_y;
     Gtk::Box     _header_bar;
-    Gtk::Button  _close_button;
+    Gtk::Button* _close_button;
     Gtk::Box     _floating_panel;
-    Gtk::Widget* _current_body = nullptr;
+    Gtk::Widget* _current_body;
 };
 } // namespace vipe

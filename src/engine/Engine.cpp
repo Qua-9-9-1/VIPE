@@ -63,11 +63,9 @@ void Engine::build_drawing_area() {
 
 void Engine::build_panels() {
     _vbox.pack_start(_overlay, Gtk::PACK_EXPAND_WIDGET);
-    _overlay.add_overlay(_fixed_layout);
-    _fixed_layout.put(_layer_panel->get_layer_panel(), 300, 300);
-    _fixed_layout.put(_toolkit.get_tool_panel(), 10, 10);
-    _fixed_layout.put(_color_palette->get_color_palette(), 40, 200);
-    _fixed_layout.put(_layer_panel->get_options_panel(), 100, 100);
-    _overlay.set_overlay_pass_through(_fixed_layout, true);
+    _overlay.add_overlay(_layer_panel->get_layer_panel());
+    _overlay.add_overlay(_color_palette->get_color_palette());
+    _overlay.add_overlay(_toolkit.get_tool_panel());
+    _overlay.add_overlay(_layer_panel->get_options_panel());
 }
 } // namespace vipe
