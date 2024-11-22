@@ -12,9 +12,11 @@
 namespace vipe {
 
 struct Layer {
-    cv::Mat image;
-    bool    visible;
-    int     opacity;
+    cv::Mat     image;
+    bool        visible;
+    int         opacity;
+    std::string name;
+    int         blend_mode;
 };
 
 class Canva {
@@ -50,7 +52,7 @@ class Canva {
     void                               cursor_triangle(int x1, int y1, int size);
     void                               cursor_pastel(int x1, int y1, int size);
     void                               cursor_spray(int x1, int y1, int size);
-    void                               color_fill(bool erase);
+    void                               color_fill();
     cv::Scalar                         pick_color(int x, int y);
     void                               recalculate_background(const cv::Size& new_size);
     void                               convert_to_RGBA(const cv::Mat& src, cv::Mat& dst);
@@ -59,7 +61,10 @@ class Canva {
     void                               add_layer();
     void                               delete_layer(int index);
     void                               move_layer(int index, int new_index);
+    void                               move_layer_up(int index);
+    void                               move_layer_down(int index);
     void                               merge_layers();
+    cv::Mat blend_normal(const cv::Mat& base, const cv::Mat& overlay, double alpha);
 
   private:
     int                _view_offset_x;

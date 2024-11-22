@@ -29,6 +29,7 @@ bool Canva::display_canva(const Cairo::RefPtr<Cairo::Context>& cr) {
         cr->rectangle(_view_offset_x, _view_offset_y, _image.cols * _zoom_factor,
                       _image.rows * _zoom_factor);
         cr->fill();
+        bool first_layer = true;
         for (const auto& layer : _layers) {
             if (!layer.visible)
                 continue;
@@ -39,8 +40,19 @@ bool Canva::display_canva(const Cairo::RefPtr<Cairo::Context>& cr) {
             auto surface = create_cairo_surface(image_rgba);
             cr->set_source(surface, _view_offset_x, _view_offset_y);
             cr->scale(_zoom_factor, _zoom_factor);
+            if (!first_layer) {
+                switch (layer.blend_mode) {
+                case 1:
+                    cr->set_operator(Cairo::OPERATOR_ADD);
+                    break;
+                default:
+                    cr->set_operator(Cairo::OPERATOR_OVER);
+                    break;
+                }
+            }
             cr->paint_with_alpha(layer.opacity / 100.0);
             cr->restore();
+            first_layer = false;
         }
         return true;
     } catch (const std::exception& e) {
@@ -104,7 +116,6 @@ Cairo::RefPtr<Cairo::ImageSurface> Canva::create_cairo_surface(const cv::Mat& im
 }
 
 Cairo::RefPtr<Cairo::Pattern> Canva::create_repeating_pattern(const cv::Mat& image) {
-    // Créer une surface Cairo à partir de l'image
     int  stride  = Cairo::ImageSurface::format_stride_for_width(Cairo::FORMAT_ARGB32, image.cols);
     auto surface = Cairo::ImageSurface::create(image.data, Cairo::FORMAT_ARGB32, image.cols,
                                                image.rows, stride);
@@ -112,8 +123,6 @@ Cairo::RefPtr<Cairo::Pattern> Canva::create_repeating_pattern(const cv::Mat& ima
     if (surface->get_status() != CAIRO_STATUS_SUCCESS) {
         throw std::runtime_error("Erreur lors de la création de la surface.");
     }
-
-    // Créer un motif répétitif à partir de cette surface
     auto pattern = Cairo::SurfacePattern::create(surface);
     pattern->set_extend(Cairo::Extend::EXTEND_REPEAT);
 
@@ -121,16 +130,37 @@ Cairo::RefPtr<Cairo::Pattern> Canva::create_repeating_pattern(const cv::Mat& ima
 }
 
 cv::Mat Canva::get_merged_image() {
-    merge_layers();
-    return _image;
+    if (_layers.empty())
+        return cv::Mat(_image.size(), _image.type(), cv::Scalar(0, 0, 0, 0));
+    cv::Mat merged = cv::Mat::zeros(_image.size(), _image.type());
+    cv::Mat image;
+
+    for (auto layer : _layers) {
+        if (layer.image.empty() || !layer.visible || layer.opacity == 0)
+            continue;
+        cv::resize(layer.image, image, merged.size(), 0, 0, cv::INTER_NEAREST);
+        if (layer.blend_mode == 0)
+            merged = blend_normal(merged, layer.image, layer.opacity / 100.0);
+        if (layer.blend_mode == 1)
+            cv::addWeighted(merged, 1.0, image, 1.0, 0.0, merged);
+        if (layer.blend_mode == 2)
+            cv::subtract(merged, image, merged);
+        if (layer.blend_mode == 3)
+            cv::addWeighted(merged, 1.0, image, 1.0, 0.0, merged);
+    }
+    if (merged.empty())
+        merged = cv::Mat(_image.size(), _image.type(), cv::Scalar(0, 0, 0, 0));
+    return merged;
 }
 
 void Canva::add_layer() {
     Layer layer;
-    layer.image     = cv::Mat(_image.size(), _image.type(), cv::Scalar(0, 0, 0, 0));
-    layer.visible   = true;
-    layer.opacity   = 100;
-    _selected_layer = _layers.size();
+    layer.image      = cv::Mat(_image.size(), _image.type(), cv::Scalar(0, 0, 0, 0));
+    layer.visible    = true;
+    layer.opacity    = 100;
+    layer.name       = "Calque " + std::to_string(_layers.size() + 1);
+    layer.blend_mode = 0;
+    _selected_layer  = _layers.size();
     _layers.push_back(layer);
 }
 
@@ -148,22 +178,76 @@ void Canva::move_layer(int index, int new_index) {
     auto layer_to_move = _layers[index];
     _layers.erase(_layers.begin() + index);
     _layers.insert(_layers.begin() + new_index, layer_to_move);
+    _selected_layer = new_index;
 }
 
-void Canva::merge_layers() {
-    if (_layers.empty())
-        return;
-    cv::Mat merged = cv::Mat::zeros(_image.size(), _image.type());
-    cv::Mat image;
-
-    for (auto layer : _layers) {
-        if (layer.image.empty() || !layer.visible)
-            continue;
-        cv::resize(layer.image, image, merged.size(), 0, 0, cv::INTER_NEAREST);
-        cv::addWeighted(merged, 1.0, image, 1.0, 0.0, merged);
+void Canva::move_layer_up(int index) {
+    if (index < 0 || index >= _layers.size()) {
+        throw std::out_of_range("Couche hors limites");
     }
-    if (merged.empty())
-        merged = cv::Mat(_image.size(), _image.type(), cv::Scalar(0, 0, 0, 0));
-    _image = merged;
+    if (index == 0)
+        return;
+    auto layer_to_move = _layers[index];
+    _layers.erase(_layers.begin() + index);
+    _layers.insert(_layers.begin() + index - 1, layer_to_move);
+    _selected_layer = index - 1;
+}
+
+void Canva::move_layer_down(int index) {
+    if (index < 0 || index >= _layers.size()) {
+        throw std::out_of_range("Couche hors limites");
+    }
+    if (index == _layers.size() - 1)
+        return;
+    auto layer_to_move = _layers[index];
+    _layers.erase(_layers.begin() + index);
+    _layers.insert(_layers.begin() + index + 1, layer_to_move);
+    _selected_layer = index + 1;
+}
+
+void Canva::merge_layers() { _image = get_merged_image(); }
+
+cv::Mat Canva::blend_normal(const cv::Mat& base, const cv::Mat& overlay, double alpha) {
+    CV_Assert(base.type() == CV_8UC4 && overlay.type() == CV_8UC4);
+    cv::Mat result = base.clone();
+    for (int y = 0; y < base.rows; ++y) {
+        for (int x = 0; x < base.cols; ++x) {
+            cv::Vec4b bg_pixel = base.at<cv::Vec4b>(y, x);
+            cv::Vec4b fg_pixel = overlay.at<cv::Vec4b>(y, x);
+
+            double fg_alpha = (fg_pixel[3] / 255.0) * alpha;
+            double bg_alpha = bg_pixel[3] / 255.0;
+
+            double out_alpha = fg_alpha + bg_alpha * (1.0 - fg_alpha);
+
+            if (out_alpha > 0) {
+                for (int c = 0; c < 3; ++c) {
+                    result.at<cv::Vec4b>(y, x)[c] = static_cast<uchar>(
+                        (fg_pixel[c] * fg_alpha + bg_pixel[c] * bg_alpha * (1.0 - fg_alpha)) /
+                        out_alpha);
+                }
+                result.at<cv::Vec4b>(y, x)[3] = static_cast<uchar>(out_alpha * 255);
+            }
+        }
+    }
+    return result;
+}
+
+cv::Mat blend_multiply(const cv::Mat& base, const cv::Mat& overlay) {
+    CV_Assert(base.type() == CV_8UC4 && overlay.type() == CV_8UC4);
+    cv::Mat result = base.clone();
+    for (int y = 0; y < base.rows; ++y) {
+        for (int x = 0; x < base.cols; ++x) {
+            cv::Vec4b bg_pixel = base.at<cv::Vec4b>(y, x);
+            cv::Vec4b fg_pixel = overlay.at<cv::Vec4b>(y, x);
+
+            for (int c = 0; c < 3; ++c) {
+                result.at<cv::Vec4b>(y, x)[c] =
+                    static_cast<uchar>((bg_pixel[c] / 255.0) * (fg_pixel[c] / 255.0) * 255);
+            }
+            result.at<cv::Vec4b>(y, x)[3] = bg_pixel[3];
+        }
+    }
+    return result;
 }
 } // namespace vipe
