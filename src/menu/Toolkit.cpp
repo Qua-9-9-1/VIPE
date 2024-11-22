@@ -3,17 +3,17 @@
 #include <iostream>
 
 namespace vipe {
-Toolkit::Toolkit()
-    : _current_tool(Tool::pencil), _tool_panel(10, 10), _last_selected_button(nullptr) {
+Toolkit::Toolkit(Engine& engine)
+    : _engine(engine), _current_tool(Tool::pencil), _tool_panel(10, 10),
+      _last_selected_button(nullptr) {
     build_tool_grid();
 }
 
 void Toolkit::build_tool_grid() {
-    std::vector<std::string> tool_names = {"Pencil", "Brush",      "Eraser", "Pipette",   "Spray",
-                                           "Bucket", "Text",       "Line",   "Rectangle", "Circle",
-                                           "Lasso",  "Magic Wand", "Shape",  "Gradient"};
-    std::vector<Tool>        tools = {pencil, brush,     eraser, pipette, spray,      bucket, text,
-                                      line,   rectangle, circle, lasso,   magic_wand, shape,  gradient};
+    std::vector<std::string> tool_names = {"Pencil", "Brush", "Eraser",    "Pipette", "Bucket",
+                                           "Text",   "Line",  "Selection", "Shape",   "Gradient"};
+    std::vector<Tool>        tools      = {pencil, brush, eraser,    pipette, bucket,
+                                           text,   line,  selection, shape,   gradient};
 
     _icon_grid.set_column_homogeneous(true);
     _icon_grid.set_row_homogeneous(true);
@@ -41,6 +41,32 @@ void Toolkit::on_tool_selected(Tool tool, Gtk::ToggleButton* clicked_button) {
     }
     _current_tool         = tool;
     _last_selected_button = clicked_button;
+    _engine.update_menu_tool_types(get_tool_type());
 }
 
+std::vector<std::string> Toolkit::get_tool_type() {
+    switch (_current_tool) {
+    case Tool::pencil:
+        return {};
+    case Tool::brush:
+        return {"Circle", "Square", "Triangle", "Pastel", "Spray", "fill"};
+    case Tool::eraser:
+        return {"Circle", "Square", "Triangle", "Pastel", "Spray", "fill"};
+    case Tool::pipette:
+        return {};
+    case Tool::bucket:
+        return {};
+    case Tool::text:
+        return {"Text"};
+    case Tool::line:
+        return {"Line"};
+    case Tool::selection:
+        return {"Rectangle", "Ellipse", "Lasso", "Magic Wand"};
+    case Tool::shape:
+        return {"Rectangle", "Ellipse", "Triangle", "Polygon", "Star"};
+    case Tool::gradient:
+        return {"Gradient"};
+    }
+    return {};
+}
 } // namespace vipe
