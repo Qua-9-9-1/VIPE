@@ -23,7 +23,8 @@ class ColorPalette {
     void           build_hiddeable_box();
     void           build_colors_gauges();
     void           update_gauges_from_color();
-    void           update_color_from_gauges();
+    void           update_RGBA_color(int color);
+    void           update_HSV_color(int gauge);
     cv::Scalar     get_first_color() { return _first_color; }
     cv::Scalar     get_second_color() { return _second_color; }
     double         get_hue(cv::Scalar color);

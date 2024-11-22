@@ -45,7 +45,7 @@ ColorPalette::~ColorPalette() {}
 Gdk::RGBA ColorPalette::get_gtk_color(cv::Scalar color) {
     Gdk::RGBA rgba;
 
-    if (color[3] == 0) {
+    if (color[3] < 0) {
         rgba.set_rgba(color[2] / 255.0, color[1] / 255.0, color[0] / 255.0, 1.0);
     } else {
         rgba.set_rgba(color[2] / 255.0, color[1] / 255.0, color[0] / 255.0, color[3] / 255.0);
@@ -399,27 +399,21 @@ void ColorPalette::build_colors_gauges() {
     _blue_gauge->set_digits(0);
     _alpha_gauge->set_range(0, 255);
     _alpha_gauge->set_digits(0);
-    _hue_gauge->set_range(0, 360);
+    _hue_gauge->set_range(0, 359);
     _hue_gauge->set_digits(0);
     _saturation_gauge->set_range(0, 100);
     _saturation_gauge->set_digits(0);
     _value_gauge->set_range(0, 100);
     _value_gauge->set_digits(0);
 
-    _red_gauge->signal_value_changed().connect(
-        sigc::mem_fun(*this, &ColorPalette::update_color_from_gauges));
-    _green_gauge->signal_value_changed().connect(
-        sigc::mem_fun(*this, &ColorPalette::update_color_from_gauges));
-    _blue_gauge->signal_value_changed().connect(
-        sigc::mem_fun(*this, &ColorPalette::update_color_from_gauges));
-    _hue_gauge->signal_value_changed().connect(
-        sigc::mem_fun(*this, &ColorPalette::update_color_from_gauges));
-    _saturation_gauge->signal_value_changed().connect(
-        sigc::mem_fun(*this, &ColorPalette::update_color_from_gauges));
-    _value_gauge->signal_value_changed().connect(
-        sigc::mem_fun(*this, &ColorPalette::update_color_from_gauges));
-    _alpha_gauge->signal_value_changed().connect(
-        sigc::mem_fun(*this, &ColorPalette::update_color_from_gauges));
+    _red_gauge->signal_value_changed().connect([this]() { update_RGBA_color(0); });
+    _green_gauge->signal_value_changed().connect([this]() { update_RGBA_color(1); });
+    _blue_gauge->signal_value_changed().connect([this]() { update_RGBA_color(2); });
+    _hue_gauge->signal_value_changed().connect([this]() { update_HSV_color(0); });
+    _saturation_gauge->signal_value_changed().connect([this]() { update_HSV_color(1); });
+    _value_gauge->signal_value_changed().connect([this]() { update_HSV_color(2); });
+    _alpha_gauge->signal_value_changed().connect([this]() { update_RGBA_color(3); });
+
     update_gauges_from_color();
 
     colors_gauges->pack_start(*colors_gauges_label, Gtk::PACK_SHRINK);
@@ -450,42 +444,42 @@ void ColorPalette::update_gauges_from_color() {
     _no_gauge_signal = true;
 }
 
-void ColorPalette::update_color_from_gauges() {
-    if (_no_gauge_signal)
-        return;
-
-    bool updating_from_rgb = (_red_gauge->get_value() != _first_color[2] ||
-                              _green_gauge->get_value() != _first_color[1] ||
-                              _blue_gauge->get_value() != _first_color[0]);
-
-    if (updating_from_rgb) {
-        double red   = _red_gauge->get_value();
-        double green = _green_gauge->get_value();
-        double blue  = _blue_gauge->get_value();
-        double alpha = _alpha_gauge->get_value();
-
-        set_first_color(cv::Scalar(blue, green, red, alpha));
-
-        double hue, saturation, value;
-        rgb_to_hsv(red / 255.0, green / 255.0, blue / 255.0, hue, saturation, value);
-
-        _hue_gauge->set_value(hue);
-        _saturation_gauge->set_value(saturation * 100);
-        _value_gauge->set_value(value * 100);
-    } else {
-        double hue        = _hue_gauge->get_value();
-        double saturation = _saturation_gauge->get_value() / 100.0;
-        double value      = _value_gauge->get_value() / 100.0;
-
-        double red, green, blue;
-        hsv_to_rgb(hue, saturation, value, red, green, blue);
-
-        set_first_color(cv::Scalar(blue * 255, green * 255, red * 255, _first_color[3]));
-
-        _red_gauge->set_value(_first_color[2]);
-        _green_gauge->set_value(_first_color[1]);
-        _blue_gauge->set_value(_first_color[0]);
+void ColorPalette::update_RGBA_color(int color) {
+    switch (color) {
+    case 0:
+        _first_color[2] = _red_gauge->get_value();
+        break;
+    case 1:
+        _first_color[1] = _green_gauge->get_value();
+        break;
+    case 2:
+        _first_color[0] = _blue_gauge->get_value();
+        break;
+    case 3:
+        _first_color[3] = _alpha_gauge->get_value();
+        break;
+    default:
+        break;
     }
+    set_first_color(_first_color);
+    _no_gauge_signal = false;
+    _hiddeable_box.queue_draw();
+}
+
+void ColorPalette::update_HSV_color(int gauge) {
+
+    double hue        = _hue_gauge->get_value();
+    double saturation = _saturation_gauge->get_value() / 100.0;
+    double value      = _value_gauge->get_value() / 100.0;
+
+    double red, green, blue;
+    hsv_to_rgb(hue, saturation, value, red, green, blue);
+
+    set_first_color(cv::Scalar(blue * 255, green * 255, red * 255, _first_color[3]));
+
+    _red_gauge->set_value(_first_color[2]);
+    _green_gauge->set_value(_first_color[1]);
+    _blue_gauge->set_value(_first_color[0]);
 
     _hiddeable_box.queue_draw();
 }
