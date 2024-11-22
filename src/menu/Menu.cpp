@@ -1,7 +1,8 @@
 #include "Menu.hpp"
 
 namespace vipe {
-Menu::Menu(Engine& window) : _window(window), _tool_size(12) {
+Menu::Menu(Engine& engine)
+    : _engine(engine), _tool_size(12), _tool_type(0), _tool_type_combo(nullptr) {
     _menu_bar.override_background_color(Gdk::RGBA("CAD7ED"));
     create_file_option();
     create_display_option();

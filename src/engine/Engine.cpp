@@ -2,7 +2,7 @@
 #include "FloatingPanel.hpp"
 
 namespace vipe {
-Engine::Engine() : _menu(*this) {
+Engine::Engine() : _menu(*this), _toolkit(nullptr) {
     set_title("VIPE - Visual Image Processing Editor");
     set_default_size(800, 600);
     try {
@@ -16,21 +16,24 @@ Engine::Engine() : _menu(*this) {
     } catch (const Gdk::PixbufError& ex) {
         std::cerr << "Erreur lors du traitement de l'image : " << ex.what() << std::endl;
     }
-    queue_draw();
     _vbox.set_orientation(Gtk::ORIENTATION_VERTICAL);
     add(_vbox);
     new_file();
+    _toolkit       = std::make_unique<Toolkit>(*this);
     _color_palette = std::make_shared<ColorPalette>();
     _layer_panel   = std::make_unique<LayersPanel>(*_canva, _drawing_area);
     signal_key_press_event().connect(sigc::mem_fun(*this, &Engine::on_key_press));
+    signal_size_allocate().connect(sigc::mem_fun(*this, &Engine::on_window_resize));
 
     build_menu();
     build_drawing_area();
     build_panels();
     add_events(Gdk::KEY_PRESS_MASK | Gdk::KEY_RELEASE_MASK);
     grab_focus();
-    open_file_from_path("/home/quentin_d2/Pictures/testing.png");
+    update_menu_tool_types(_toolkit->get_tool_type());
+    // open_file_from_path("/home/quentin_d2/Pictures/testing.png");
     show_all_children();
+    _layer_panel->on_close_options_panel();
 }
 
 Engine::~Engine() {}
@@ -49,6 +52,8 @@ void Engine::build_menu() {
 
 void Engine::build_drawing_area() {
     _overlay.add(_drawing_area);
+    _overlay.set_hexpand(true);
+    _overlay.set_vexpand(true);
     _drawing_area.signal_draw().connect(sigc::mem_fun(*_canva, &Canva::display_canva));
     _drawing_area.add_events(Gdk::SCROLL_MASK | Gdk::BUTTON_PRESS_MASK | Gdk::POINTER_MOTION_MASK |
                              Gdk::BUTTON_RELEASE_MASK);
@@ -65,7 +70,11 @@ void Engine::build_panels() {
     _vbox.pack_start(_overlay, Gtk::PACK_EXPAND_WIDGET);
     _overlay.add_overlay(_layer_panel->get_layer_panel());
     _overlay.add_overlay(_color_palette->get_color_palette());
-    _overlay.add_overlay(_toolkit.get_tool_panel());
+    _overlay.add_overlay(_toolkit->get_tool_panel());
     _overlay.add_overlay(_layer_panel->get_options_panel());
+}
+
+void Engine::update_menu_tool_types(std::vector<std::string> tool_types) {
+    _menu.update_tool_types(tool_types);
 }
 } // namespace vipe

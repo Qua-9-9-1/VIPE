@@ -53,10 +53,13 @@ class Engine : public Gtk::Window {
     bool on_scroll(GdkEventScroll* event);
     void canva_click_action(int x, int y, GdkEventButton* event);
     void canva_action(int x, int y);
+    void brush_actions(int x, int y);
     bool on_key_press(GdkEventKey* event);
     bool key_events(GdkEventKey* event);
     bool file_shortcuts(GdkEventKey* event);
     bool canva_shortcuts(GdkEventKey* event);
+    void on_window_resize(Gtk::Allocation& allocation);
+    void update_menu_tool_types(std::vector<std::string> tool_types);
 
   private:
     Menu                          _menu;
@@ -66,7 +69,7 @@ class Engine : public Gtk::Window {
     std::vector<Canva>            _canvas;
     Gtk::Overlay                  _overlay;
     Gtk::Fixed                    _fixed_layout;
-    Toolkit                       _toolkit;
+    std::unique_ptr<Toolkit>      _toolkit;
     std::unique_ptr<LayersPanel>  _layer_panel;
     std::shared_ptr<ColorPalette> _color_palette;
 };
