@@ -34,48 +34,71 @@ bool Engine::on_motion_notify(GdkEventMotion* event) {
     return true;
 }
 
+void Engine::on_window_resize(Gtk::Allocation& allocation) {
+    int new_width  = allocation.get_width();
+    int new_height = allocation.get_height();
+
+    // std::cout << "Window resized to " << new_width << "x" << new_height << std::endl;
+    // _overlay.set_size_request(new_width, new_height);
+    // _overlay.queue_resize();
+}
+
 void Engine::canva_click_action(int x, int y, GdkEventButton* event) {
-    auto current_tool = _toolkit.get_current_tool();
+    auto current_tool = _toolkit->get_current_tool();
 
     if (event) {
         if (event->button == 1) {
             _canva->set_color(_color_palette->get_first_color());
+            if (current_tool == vipe::Tool::pipette) {
+                _color_palette->set_first_color(_canva->pick_color(x, y));
+            } else if (current_tool == vipe::Tool::eraser) {
+                _canva->set_color(cv::Scalar(0, 0, 0, 0));
+            }
+            canva_action(x, y);
         } else if (event->button == 2) {
             _canva->set_point_pos(x, y);
         } else if (event->button == 3) {
             _canva->set_color(_color_palette->get_second_color());
+            if (current_tool == vipe::Tool::pipette) {
+                _color_palette->set_first_color(_canva->pick_color(x, y));
+            } else if (current_tool == vipe::Tool::eraser) {
+                _canva->set_color(cv::Scalar(0, 0, 0, 0));
+            }
+            canva_action(x, y);
         }
+        canva_action(x, y);
     }
-    if (current_tool == vipe::Tool::pipette) {
-        if (event->button == 1) {
-            _color_palette->set_first_color(_canva->pick_color(x, y));
-        } else if (event->button == 3) {
-            _color_palette->set_second_color(_canva->pick_color(x, y));
-        }
-        return;
-    }
-    canva_action(x, y);
 }
 
 void Engine::canva_action(int x, int y) {
-    auto current_tool = _toolkit.get_current_tool();
+    auto current_tool = _toolkit->get_current_tool();
 
+    std::cout << "x: " << x << " y: " << y << std::endl;
     if (current_tool == vipe::Tool::pencil) {
         _canva->cursor_draw(x, y, 1);
-    } else if (current_tool == vipe::Tool::brush) {
-        _canva->cursor_draw(x, y, _menu.get_tool_size());
-    } else if (current_tool == vipe::Tool::eraser) {
-        _canva->cursor_erase(x, y, _menu.get_tool_size());
+    } else if (current_tool == vipe::Tool::brush || current_tool == vipe::Tool::eraser) {
+        brush_actions(x, y);
     } else if (current_tool == vipe::Tool::bucket) {
-        _canva->cursor_square(x, y, _menu.get_tool_size());
+        return;
     } else if (current_tool == vipe::Tool::line) {
+        return;
+    }
+}
+
+void Engine::brush_actions(int x, int y) {
+    auto tool_type = _menu.get_tool_type();
+    if (tool_type == 0) {
+        _canva->cursor_draw(x, y, _menu.get_tool_size());
+    } else if (tool_type == 1) {
+        _canva->cursor_square(x, y, _menu.get_tool_size());
+    } else if (tool_type == 2) {
         _canva->cursor_triangle(x, y, _menu.get_tool_size());
-    } else if (current_tool == vipe::Tool::rectangle) {
+    } else if (tool_type == 3) {
         _canva->cursor_pastel(x, y, _menu.get_tool_size());
-    } else if (current_tool == vipe::Tool::circle) {
+    } else if (tool_type == 4) {
         _canva->cursor_spray(x, y, _menu.get_tool_size());
-    } else if (current_tool == vipe::Tool::lasso) {
-        _canva->color_fill(0);
+    } else if (tool_type == 5) {
+        _canva->color_fill();
     }
 }
 
@@ -116,13 +139,12 @@ bool Engine::file_shortcuts(GdkEventKey* event) {
         open_file();
         return true;
     }
-    if ((event->keyval == GDK_KEY_s || event->keyval == GDK_KEY_S)) {
-        save_file();
-        return true;
-    }
     if ((event->state & GDK_SHIFT_MASK) &&
         (event->keyval == GDK_KEY_s || event->keyval == GDK_KEY_S)) {
         save_as_file();
+        return true;
+    } else if ((event->keyval == GDK_KEY_s || event->keyval == GDK_KEY_S)) {
+        save_file();
         return true;
     }
     if ((event->keyval == GDK_KEY_w || event->keyval == GDK_KEY_W)) {
@@ -166,6 +188,12 @@ bool Engine::key_events(GdkEventKey* event) {
     if ((event->keyval == GDK_KEY_m || event->keyval == GDK_KEY_M) ||
         (event->keyval == GDK_KEY_KP_Subtract)) {
         _canva->zoom_view(-0.1);
+        return true;
+    }
+    if ((event->keyval == GDK_KEY_o || event->keyval == GDK_KEY_O)) {
+        _toolkit->get_tool_panel().display_panel();
+        _layer_panel->get_layer_panel().display_panel();
+        _color_palette->get_color_palette().display_panel();
         return true;
     }
     return false;
