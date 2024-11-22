@@ -14,8 +14,8 @@ class LayersPanel {
   public:
     LayersPanel(Canva& canva, Gtk::DrawingArea& drawing_area);
     ~LayersPanel();
-    Gtk::Box& get_layer_panel() { return _layer_panel; }
-    Gtk::Box& get_options_panel() { return _layer_options; }
+    FloatingPanel& get_layer_panel() { return _layer_panel; }
+    FloatingPanel& get_options_panel() { return _layer_options; }
 
     void build_layer_panel();
     void build_options_panel();
@@ -27,12 +27,17 @@ class LayersPanel {
     void add_options_button(Gtk::Box* layer_box, int i);
     void add_delete_button(Gtk::Box* layer_box, int i);
     void add_add_layer_button();
+    void add_layer_up_button(int index);
+    void add_layer_down_button(int index);
 
     void on_layer_clicked(int index, Gtk::Box* clicked_layer);
     bool on_layer_drag_motion(int x, int y);
     void on_add_layer();
+    void on_move_layer_up(int index);
+    void on_move_layer_down(int index);
     void toggle_layer_visibility(int index, Gtk::Button* visibility_button);
     void set_layer_options_panel();
+    void set_layer_mode(int mode);
     void on_delete_layer(int index);
     void on_validate_options_panel(int opacity);
     void on_close_options_panel();
@@ -47,6 +52,6 @@ class LayersPanel {
     Gtk::Box               _layer_options_container;
     FloatingPanel          _layer_options;
     Gtk::Scale*            _opacity_scale;
-    //_layer mode selector
+    Gtk::ComboBoxText*     _blend_mode_combo;
 };
 } // namespace vipe

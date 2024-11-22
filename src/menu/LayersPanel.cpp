@@ -3,10 +3,9 @@
 namespace vipe {
 LayersPanel::LayersPanel(Canva& canva, Gtk::DrawingArea& drawing_area)
     : _canva(canva), _drawing_area(drawing_area), _layer_panel(300, 300), _layer_options(100, 100),
-      _last_selected_layer(nullptr), _opacity_scale(nullptr) {
+      _last_selected_layer(nullptr), _opacity_scale(nullptr), _blend_mode_combo(nullptr) {
     build_layer_panel();
     build_options_panel();
-    on_close_options_panel();
 }
 
 LayersPanel::~LayersPanel() {}
@@ -26,6 +25,8 @@ void LayersPanel::update_layer_list() {
         add_layer_to_list(i);
     }
     add_add_layer_button();
+    add_layer_up_button(_canva.get_selected_layer_index());
+    add_layer_down_button(_canva.get_selected_layer_index());
     _layer_list_container.show_all();
 }
 
@@ -37,7 +38,7 @@ void LayersPanel::clear_layer_list() {
 void LayersPanel::add_layer_to_list(int i) {
     auto event_box = Gtk::make_managed<Gtk::EventBox>();
     auto inner_box = Gtk::make_managed<Gtk::Box>(Gtk::ORIENTATION_HORIZONTAL);
-    auto label     = Gtk::make_managed<Gtk::Label>("Calque " + std::to_string(i + 1));
+    auto label     = Gtk::make_managed<Gtk::Label>(_canva.get_layers()[i].name);
 
     event_box->add(*label);
     event_box->set_size_request(120, 50);
@@ -95,10 +96,31 @@ void LayersPanel::add_add_layer_button() {
     _layer_list_container.pack_end(*add_layer_button, Gtk::PACK_SHRINK);
 }
 
+void LayersPanel::add_layer_up_button(int index) {
+    Gtk::Button* _move_layer_up_button = Gtk::manage(new Gtk::Button());
+    _move_layer_up_button->set_image_from_icon_name("go-up-symbolic", Gtk::ICON_SIZE_BUTTON);
+    if (index == 0) {
+        _move_layer_up_button->set_sensitive(false);
+    }
+    _move_layer_up_button->signal_clicked().connect([this, index] { on_move_layer_up(index); });
+    _layer_list_container.pack_end(*_move_layer_up_button, Gtk::PACK_SHRINK);
+}
+
+void LayersPanel::add_layer_down_button(int index) {
+    Gtk::Button* _move_layer_down_button = Gtk::manage(new Gtk::Button());
+    _move_layer_down_button->set_image_from_icon_name("go-down-symbolic", Gtk::ICON_SIZE_BUTTON);
+    if (index == _canva.get_layers().size() - 1) {
+        _move_layer_down_button->set_sensitive(false);
+    }
+    _move_layer_down_button->signal_clicked().connect([this, index] { on_move_layer_down(index); });
+    _layer_list_container.pack_end(*_move_layer_down_button, Gtk::PACK_SHRINK);
+}
+
 void LayersPanel::on_layer_clicked(int index, Gtk::Box* clicked_layer) {
     _last_selected_layer->override_background_color(Gdk::RGBA("#E9E9F4"));
     clicked_layer->override_background_color(Gdk::RGBA("#DFDFE5"));
     _canva.set_selected_layer(index);
+    _blend_mode_combo->set_active(_canva.get_selected_layer().blend_mode);
     _last_selected_layer = clicked_layer;
     on_close_options_panel();
 }
@@ -108,6 +130,18 @@ bool LayersPanel::on_layer_drag_motion(int x, int y) { return true; }
 void LayersPanel::on_add_layer() {
     _canva.add_layer();
     update_layer_list();
+}
+
+void LayersPanel::on_move_layer_up(int index) {
+    _canva.move_layer_up(index);
+    update_layer_list();
+    _drawing_area.queue_draw();
+}
+
+void LayersPanel::on_move_layer_down(int index) {
+    _canva.move_layer_down(index);
+    update_layer_list();
+    _drawing_area.queue_draw();
 }
 
 void LayersPanel::toggle_layer_visibility(int index, Gtk::Button* visibility_button) {
@@ -145,10 +179,11 @@ void LayersPanel::build_options_panel() {
 }
 
 void LayersPanel::update_options_panel() {
-    auto header_box  = Gtk::make_managed<Gtk::Box>(Gtk::ORIENTATION_HORIZONTAL);
-    auto layer_label = Gtk::make_managed<Gtk::Label>("CALQUE");
-    auto button_box  = Gtk::make_managed<Gtk::Box>(Gtk::ORIENTATION_HORIZONTAL);
-    _opacity_scale   = Gtk::make_managed<Gtk::Scale>(Gtk::ORIENTATION_HORIZONTAL);
+    auto header_box   = Gtk::make_managed<Gtk::Box>(Gtk::ORIENTATION_HORIZONTAL);
+    auto layer_label  = Gtk::make_managed<Gtk::Label>(_canva.get_selected_layer().name);
+    auto button_box   = Gtk::make_managed<Gtk::Box>(Gtk::ORIENTATION_HORIZONTAL);
+    _opacity_scale    = Gtk::make_managed<Gtk::Scale>(Gtk::ORIENTATION_HORIZONTAL);
+    _blend_mode_combo = Gtk::make_managed<Gtk::ComboBoxText>();
 
     _layer_options.clear_panel_body();
     header_box->pack_start(*layer_label, Gtk::PACK_EXPAND_WIDGET);
@@ -158,11 +193,20 @@ void LayersPanel::update_options_panel() {
     _opacity_scale->set_digits(0);
     _layer_options_container.pack_start(*_opacity_scale, Gtk::PACK_EXPAND_WIDGET);
 
+    _blend_mode_combo->append("Normal");
+    _blend_mode_combo->append("Add");
+    _blend_mode_combo->append("Multiply");
+    _blend_mode_combo->append("XOR");
+
+    _layer_options_container.pack_start(*_blend_mode_combo, Gtk::PACK_EXPAND_WIDGET);
     auto validate_button = Gtk::make_managed<Gtk::Button>("Valider");
     validate_button->signal_clicked().connect(
         [this] { on_validate_options_panel(static_cast<int>(_opacity_scale->get_value())); });
-    button_box->pack_start(*validate_button, Gtk::PACK_EXPAND_WIDGET);
+    _blend_mode_combo->signal_changed().connect(
+        [this]() { set_layer_mode(_blend_mode_combo->get_active_row_number()); });
+    _blend_mode_combo->set_active(_canva.get_selected_layer().blend_mode);
 
+    button_box->pack_start(*validate_button, Gtk::PACK_EXPAND_WIDGET);
     auto close_button = Gtk::make_managed<Gtk::Button>("Annuler");
     close_button->signal_clicked().connect([this] { on_close_options_panel(); });
     button_box->pack_start(*close_button, Gtk::PACK_EXPAND_WIDGET);
@@ -176,8 +220,11 @@ void LayersPanel::on_validate_options_panel(int opacity) {
     on_close_options_panel();
 }
 
-void LayersPanel::on_close_options_panel() {
-    std::cout << "foutaises" << std::endl;
-    _layer_options.hide_panel();
+void LayersPanel::on_close_options_panel() { _layer_options.hide_panel(); }
+
+void LayersPanel::set_layer_mode(int mode) {
+    auto& current_layer      = _canva.get_selected_layer();
+    current_layer.blend_mode = mode;
+    _drawing_area.queue_draw();
 }
 } // namespace vipe
