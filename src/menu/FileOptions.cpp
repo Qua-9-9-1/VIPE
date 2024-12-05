@@ -3,8 +3,9 @@
 namespace vipe {
 
 void Engine::new_file() {
-    _canvas.push_back(Canva());
-    _canva = std::make_shared<Canva>(_canvas.back());
+    auto new_canva = std::make_shared<Canva>();
+    _canvas.push_back(new_canva);
+    switch_canva(new_canva);
     _canva->create_blank_picture(800, 600);
     _canva->center_and_zoom_picture(get_width(), get_height());
     _drawing_area.queue_draw();
@@ -13,8 +14,8 @@ void Engine::new_file() {
 void Engine::open_file() {
     Gtk::FileChooserDialog dialog("Choisir une image", Gtk::FILE_CHOOSER_ACTION_OPEN);
     dialog.set_transient_for(*this);
-    dialog.add_button("_Annuler", Gtk::RESPONSE_CANCEL);
-    dialog.add_button("_Ouvrir", Gtk::RESPONSE_OK);
+    dialog.add_button("Annuler", Gtk::RESPONSE_CANCEL);
+    dialog.add_button("Ouvrir", Gtk::RESPONSE_OK);
     auto filter_image = Gtk::FileFilter::create();
     filter_image->set_name("Images");
     filter_image->add_mime_type("image/jpeg");
@@ -28,6 +29,9 @@ void Engine::open_file() {
 }
 
 void Engine::open_file_from_path(const std::string& filename) {
+    auto new_canva = std::make_shared<Canva>();
+    _canvas.push_back(new_canva);
+    switch_canva(new_canva);
     _canva->set_image(filename);
     _canva->set_filename(filename);
     _canva->center_and_zoom_picture(get_width(), get_height());
@@ -99,9 +103,23 @@ void Engine::save_as_file() {
 }
 
 void Engine::close_file() {
-    return;
-    _canvas.pop_back();
-    _canva = std::make_shared<Canva>(_canvas.back());
-    _drawing_area.queue_draw();
+    if (_canvas.size() == 1 || _canvas.empty()) {
+        exit(0);
+    }
+    auto current_canva = std::find(_canvas.begin(), _canvas.end(), _canva);
+    if (current_canva == _canvas.end()) {
+        _canvas.push_back(_canva);
+    }
+    size_t index = std::distance(_canvas.begin(), current_canva);
+    _canvas.erase(current_canva);
+    if (_canvas.empty()) {
+        _canva = nullptr;
+    } else {
+        if (index >= _canvas.size()) {
+            index = _canvas.size() - 1;
+        }
+        switch_canva(_canvas[index]);
+    }
 }
+
 } // namespace vipe

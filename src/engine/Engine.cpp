@@ -2,7 +2,9 @@
 #include "FloatingPanel.hpp"
 
 namespace vipe {
-Engine::Engine() : _menu(*this), _toolkit(nullptr) {
+Engine::Engine()
+    : _menu(*this), _canva(nullptr), _toolkit(nullptr), _layer_panel(nullptr),
+      _color_palette(nullptr) {
     set_title("VIPE - Visual Image Processing Editor");
     set_default_size(800, 600);
     try {
@@ -18,8 +20,8 @@ Engine::Engine() : _menu(*this), _toolkit(nullptr) {
     }
     _vbox.set_orientation(Gtk::ORIENTATION_VERTICAL);
     add(_vbox);
+    _toolkit = std::make_unique<Toolkit>(*this);
     new_file();
-    _toolkit       = std::make_unique<Toolkit>(*this);
     _color_palette = std::make_shared<ColorPalette>();
     _layer_panel   = std::make_unique<LayersPanel>(*_canva, _drawing_area);
     signal_key_press_event().connect(sigc::mem_fun(*this, &Engine::on_key_press));
@@ -34,6 +36,7 @@ Engine::Engine() : _menu(*this), _toolkit(nullptr) {
     // open_file_from_path("/home/quentin_d2/Pictures/testing.png");
     show_all_children();
     _layer_panel->on_close_options_panel();
+    _canva->center_and_zoom_picture(800, 600);
 }
 
 Engine::~Engine() {}
@@ -54,7 +57,9 @@ void Engine::build_drawing_area() {
     _overlay.add(_drawing_area);
     _overlay.set_hexpand(true);
     _overlay.set_vexpand(true);
-    _drawing_area.signal_draw().connect(sigc::mem_fun(*_canva, &Canva::display_canva));
+    _draw_connection =
+        _drawing_area.signal_draw().connect(sigc::mem_fun(*_canva, &Canva::display_canva));
+    // _drawing_area.signal_draw().connect(sigc::mem_fun(*_canva, &Canva::display_canva));
     _drawing_area.add_events(Gdk::SCROLL_MASK | Gdk::BUTTON_PRESS_MASK | Gdk::POINTER_MOTION_MASK |
                              Gdk::BUTTON_RELEASE_MASK);
     _drawing_area.signal_button_press_event().connect(
@@ -76,5 +81,24 @@ void Engine::build_panels() {
 
 void Engine::update_menu_tool_types(std::vector<std::string> tool_types) {
     _menu.update_tool_types(tool_types);
+}
+
+void Engine::switch_canva(std::shared_ptr<Canva> canva) {
+    if (!canva) {
+        std::cerr << "Aucun canva à charger." << std::endl;
+        _canva = nullptr;
+        _drawing_area.queue_draw();
+        return;
+    }
+    _canva = canva;
+    if (_layer_panel != nullptr) {
+        _layer_panel->set_canva(*canva);
+    }
+    if (_draw_connection.connected()) {
+        _draw_connection.disconnect();
+    }
+    _draw_connection =
+        _drawing_area.signal_draw().connect(sigc::mem_fun(*_canva, &Canva::display_canva));
+    _drawing_area.queue_draw();
 }
 } // namespace vipe

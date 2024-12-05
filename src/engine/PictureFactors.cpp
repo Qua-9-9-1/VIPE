@@ -27,18 +27,20 @@ void Canva::apply_canva_drawing_factors(int& x, int& y) {
 }
 
 void Canva::center_and_zoom_picture(int window_width, int window_height) {
-    auto picture_width  = _image.cols;
-    auto picture_height = _image.rows;
-    // double scale_width    = static_cast<double>(window_width) / picture_width;
-    // double scale_height   = static_cast<double>(window_height) / picture_height;
-    // double scale          = std::min(scale_width, scale_height) * 0.85;
+    auto   picture_width  = _image.cols;
+    auto   picture_height = _image.rows;
+    double scale          = 1.0;
 
-    // _zoom_factor   = scale;
-    double scale   = 1.0;
+    if (_zoom_factor == 1.0) {
+        double scale_width  = static_cast<double>(window_width) / picture_width;
+        double scale_height = static_cast<double>(window_height) / picture_height;
+        scale               = std::min(scale_width, scale_height) * 0.85;
+    }
     _view_offset_x = (window_width - picture_width * scale) / 2;
     _view_offset_y = (window_height - picture_height * scale) / 2;
     if (_view_offset_y < 0) {
         _view_offset_y = 0;
     }
+    _zoom_factor = scale;
 }
 } // namespace vipe

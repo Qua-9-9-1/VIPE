@@ -16,6 +16,15 @@ void LayersPanel::build_layer_panel() {
     update_layer_list();
 }
 
+void LayersPanel::set_canva(Canva& canva) {
+    _canva = canva;
+    build_layer_panel();
+    build_options_panel();
+    // on_close_options_panel();
+    // update_layer_list();
+    // update_options_panel();
+}
+
 void LayersPanel::update_layer_list() {
     auto layers = _canva.get_layers();
 
@@ -27,6 +36,7 @@ void LayersPanel::update_layer_list() {
     add_add_layer_button();
     add_layer_up_button(_canva.get_selected_layer_index());
     add_layer_down_button(_canva.get_selected_layer_index());
+    add_image_layer_button();
     _layer_list_container.show_all();
 }
 
@@ -116,6 +126,14 @@ void LayersPanel::add_layer_down_button(int index) {
     _layer_list_container.pack_end(*_move_layer_down_button, Gtk::PACK_SHRINK);
 }
 
+void LayersPanel::add_image_layer_button() {
+    Gtk::Button* add_image_layer_button = Gtk::manage(new Gtk::Button());
+    add_image_layer_button->set_image_from_icon_name("image-x-generic-symbolic",
+                                                     Gtk::ICON_SIZE_BUTTON);
+    add_image_layer_button->signal_clicked().connect([this] { on_add_layer_from_image(); });
+    _layer_list_container.pack_end(*add_image_layer_button, Gtk::PACK_SHRINK);
+}
+
 void LayersPanel::on_layer_clicked(int index, Gtk::Box* clicked_layer) {
     _last_selected_layer->override_background_color(Gdk::RGBA("#E9E9F4"));
     clicked_layer->override_background_color(Gdk::RGBA("#DFDFE5"));
@@ -141,6 +159,24 @@ void LayersPanel::on_move_layer_up(int index) {
 void LayersPanel::on_move_layer_down(int index) {
     _canva.move_layer_down(index);
     update_layer_list();
+    _drawing_area.queue_draw();
+}
+
+void LayersPanel::on_add_layer_from_image() {
+    // Gtk::FileChooserDialog dialog("Choisir une image", Gtk::FILE_CHOOSER_ACTION_OPEN);
+    // dialog.set_transient_for(*this);
+    // dialog.add_button("Annuler", Gtk::RESPONSE_CANCEL);
+    // dialog.add_button("Ouvrir", Gtk::RESPONSE_OK);
+    // auto filter_image = Gtk::FileFilter::create();
+    // filter_image->set_name("Images");
+    // filter_image->add_mime_type("image/jpeg");
+    // filter_image->add_mime_type("image/png");
+    // dialog.add_filter(filter_image);
+    // int result = dialog.run();
+    // if (result == Gtk::RESPONSE_OK) {
+    //     std::string filename = dialog.get_filename();
+    //     _canva.add_layer_from_image(filename);
+    // }
     _drawing_area.queue_draw();
 }
 

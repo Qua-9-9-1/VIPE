@@ -34,6 +34,7 @@ class Engine : public Gtk::Window {
     void create_display_option();
     void create_image_option();
     void create_effect_option();
+    void switch_canva(std::shared_ptr<Canva> canva);
     void new_file();
     void open_file();
     void open_file_from_path(const std::string& filename);
@@ -62,15 +63,16 @@ class Engine : public Gtk::Window {
     void update_menu_tool_types(std::vector<std::string> tool_types);
 
   private:
-    Menu                          _menu;
-    Gtk::VBox                     _vbox;
-    Gtk::DrawingArea              _drawing_area;
-    std::shared_ptr<Canva>        _canva;
-    std::vector<Canva>            _canvas;
-    Gtk::Overlay                  _overlay;
-    Gtk::Fixed                    _fixed_layout;
-    std::unique_ptr<Toolkit>      _toolkit;
-    std::unique_ptr<LayersPanel>  _layer_panel;
-    std::shared_ptr<ColorPalette> _color_palette;
+    Menu                                _menu;
+    Gtk::VBox                           _vbox;
+    Gtk::DrawingArea                    _drawing_area;
+    std::shared_ptr<Canva>              _canva;
+    std::vector<std::shared_ptr<Canva>> _canvas;
+    sigc::connection                    _draw_connection;
+    Gtk::Overlay                        _overlay;
+    Gtk::Fixed                          _fixed_layout;
+    std::unique_ptr<Toolkit>            _toolkit;
+    std::unique_ptr<LayersPanel>        _layer_panel;
+    std::shared_ptr<ColorPalette>       _color_palette;
 };
 } // namespace vipe
