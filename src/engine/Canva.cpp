@@ -2,7 +2,7 @@
 
 namespace vipe {
 Canva::Canva()
-    : _view_offset_x(0), _view_offset_y(0), _zoom_factor(1.0), _prev_x(-1), _prev_y(-1),
+    : _view_offset_x(0), _view_offset_y(0), _zoom_factor(0.1), _prev_x(-1), _prev_y(-1),
       _selected_layer(0), _background_color(255, 235, 225, 255) {
     _background = cv::imread("../assets/bg.png", cv::IMREAD_UNCHANGED);
     if (_background.empty()) {
@@ -159,6 +159,37 @@ void Canva::add_layer() {
     layer.visible    = true;
     layer.opacity    = 100;
     layer.name       = "Calque " + std::to_string(_layers.size() + 1);
+    layer.blend_mode = 0;
+    _selected_layer  = _layers.size();
+    _layers.push_back(layer);
+}
+
+void Canva::add_layer_from_image(const std::string& filename) {
+    Layer layer;
+    layer.image = cv::imread(filename, cv::IMREAD_UNCHANGED);
+    if (layer.image.empty()) {
+        std::cerr << "Erreur lors du chargement de l'image." << std::endl;
+        return;
+    }
+    convert_to_RGBA(layer.image, layer.image);
+    int new_width  = std::max(layer.image.cols, _image.cols);
+    int new_height = std::max(layer.image.rows, _image.rows);
+
+    if (new_width > _image.cols || new_height > _image.rows) {
+        cv::Mat new_canva(cv::Size(new_width, new_height), _image.type(), cv::Scalar(0, 0, 0, 0));
+        _image.copyTo(new_canva(cv::Rect(0, 0, _image.cols, _image.rows)));
+        _image = new_canva;
+        for (auto& existing_layer : _layers) {
+            cv::Mat resized_layer(cv::Size(new_width, new_height), existing_layer.image.type(),
+                                  cv::Scalar(0, 0, 0, 0));
+            existing_layer.image.copyTo(resized_layer(
+                cv::Rect(0, 0, existing_layer.image.cols, existing_layer.image.rows)));
+            existing_layer.image = resized_layer;
+        }
+    }
+    layer.name       = "Calque " + std::to_string(_layers.size() + 1);
+    layer.visible    = true;
+    layer.opacity    = 100;
     layer.blend_mode = 0;
     _selected_layer  = _layers.size();
     _layers.push_back(layer);

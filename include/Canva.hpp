@@ -59,6 +59,7 @@ class Canva {
     Cairo::RefPtr<Cairo::ImageSurface> create_cairo_surface(const cv::Mat& image);
     Cairo::RefPtr<Cairo::Pattern>      create_repeating_pattern(const cv::Mat& image);
     void                               add_layer();
+    void                               add_layer_from_image(const std::string& filename);
     void                               delete_layer(int index);
     void                               move_layer(int index, int new_index);
     void                               move_layer_up(int index);

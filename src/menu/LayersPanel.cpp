@@ -163,20 +163,20 @@ void LayersPanel::on_move_layer_down(int index) {
 }
 
 void LayersPanel::on_add_layer_from_image() {
-    // Gtk::FileChooserDialog dialog("Choisir une image", Gtk::FILE_CHOOSER_ACTION_OPEN);
+    Gtk::FileChooserDialog dialog("Choisir une image", Gtk::FILE_CHOOSER_ACTION_OPEN);
     // dialog.set_transient_for(*this);
-    // dialog.add_button("Annuler", Gtk::RESPONSE_CANCEL);
-    // dialog.add_button("Ouvrir", Gtk::RESPONSE_OK);
-    // auto filter_image = Gtk::FileFilter::create();
-    // filter_image->set_name("Images");
-    // filter_image->add_mime_type("image/jpeg");
-    // filter_image->add_mime_type("image/png");
-    // dialog.add_filter(filter_image);
-    // int result = dialog.run();
-    // if (result == Gtk::RESPONSE_OK) {
-    //     std::string filename = dialog.get_filename();
-    //     _canva.add_layer_from_image(filename);
-    // }
+    dialog.add_button("Annuler", Gtk::RESPONSE_CANCEL);
+    dialog.add_button("Ouvrir", Gtk::RESPONSE_OK);
+    auto filter_image = Gtk::FileFilter::create();
+    filter_image->set_name("Images");
+    filter_image->add_mime_type("image/jpeg");
+    filter_image->add_mime_type("image/png");
+    dialog.add_filter(filter_image);
+    int result = dialog.run();
+    if (result == Gtk::RESPONSE_OK) {
+        std::string filename = dialog.get_filename();
+        _canva.add_layer_from_image(filename);
+    }
     _drawing_area.queue_draw();
 }
 
