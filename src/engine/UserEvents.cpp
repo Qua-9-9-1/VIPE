@@ -73,7 +73,6 @@ void Engine::canva_click_action(int x, int y, GdkEventButton* event) {
 void Engine::canva_action(int x, int y) {
     auto current_tool = _toolkit->get_current_tool();
 
-    std::cout << "x: " << x << " y: " << y << std::endl;
     if (current_tool == vipe::Tool::pencil) {
         _canva->cursor_draw(x, y, 1);
     } else if (current_tool == vipe::Tool::brush || current_tool == vipe::Tool::eraser) {
@@ -182,12 +181,12 @@ bool Engine::key_events(GdkEventKey* event) {
     }
     if ((event->keyval == GDK_KEY_p || event->keyval == GDK_KEY_P) ||
         (event->keyval == GDK_KEY_KP_Add)) {
-        _canva->zoom_view(0.1);
+        zoom_on_canva(0.1);
         return true;
     }
     if ((event->keyval == GDK_KEY_m || event->keyval == GDK_KEY_M) ||
         (event->keyval == GDK_KEY_KP_Subtract)) {
-        _canva->zoom_view(-0.1);
+        zoom_on_canva(-0.1);
         return true;
     }
     if ((event->keyval == GDK_KEY_o || event->keyval == GDK_KEY_O)) {

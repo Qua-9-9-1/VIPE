@@ -55,6 +55,7 @@ class Engine : public Gtk::Window {
     void canva_click_action(int x, int y, GdkEventButton* event);
     void canva_action(int x, int y);
     void brush_actions(int x, int y);
+    void zoom_on_canva(float coef);
     bool on_key_press(GdkEventKey* event);
     bool key_events(GdkEventKey* event);
     bool file_shortcuts(GdkEventKey* event);

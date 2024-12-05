@@ -85,6 +85,19 @@ void Menu::create_sub_menu() {
     _sub_menu.pack_start(*horizontal_box, Gtk::PACK_SHRINK);
 }
 
+void Menu::create_bottom_bar() {
+    auto widget = Gtk::make_managed<Gtk::Label>("VIPE");
+    _bottom_bar.pack_start(*widget, Gtk::PACK_SHRINK);
+    auto zoom_in_button = Gtk::make_managed<Gtk::Button>();
+    zoom_in_button->set_image_from_icon_name("zoom-in-symbolic", Gtk::ICON_SIZE_BUTTON);
+    zoom_in_button->signal_clicked().connect([this] { _engine.zoom_on_canva(0.1); });
+    _bottom_bar.pack_end(*zoom_in_button, Gtk::PACK_SHRINK);
+    auto zoom_out_button = Gtk::make_managed<Gtk::Button>();
+    zoom_out_button->set_image_from_icon_name("zoom-out-symbolic", Gtk::ICON_SIZE_BUTTON);
+    zoom_out_button->signal_clicked().connect([this] { _engine.zoom_on_canva(-0.1); });
+    _bottom_bar.pack_end(*zoom_out_button, Gtk::PACK_SHRINK);
+}
+
 void Menu::update_tool_types(std::vector<std::string> tool_types) {
     _tool_type_combo->remove_all();
     if (!tool_types.empty()) {

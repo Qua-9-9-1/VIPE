@@ -10,6 +10,9 @@ Menu::Menu(Engine& engine)
     create_image_option();
     _sub_menu.override_background_color(Gdk::RGBA("#DAE4F2"));
     create_sub_menu();
+    _bottom_bar.set_orientation(Gtk::ORIENTATION_HORIZONTAL);
+    _bottom_bar.override_background_color(Gdk::RGBA("CAD7ED"));
+    create_bottom_bar();
 }
 
 Menu::~Menu() {}

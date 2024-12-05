@@ -46,11 +46,11 @@ void Engine::build_menu() {
     auto  style_context = Gtk::StyleContext::create();
     auto& menu_bar      = _menu.get_menu_bar();
     auto& sub_menu      = _menu.get_sub_menu();
+    auto& bottom_bar    = _menu.get_bottom_bar();
 
-    menu_bar.get_style_context()->add_class("menu-bar");
     _vbox.pack_start(menu_bar, Gtk::PACK_SHRINK);
-    sub_menu.get_style_context()->add_class("sub-menu");
     _vbox.pack_start(sub_menu, Gtk::PACK_SHRINK);
+    _vbox.pack_end(bottom_bar, Gtk::PACK_SHRINK);
 }
 
 void Engine::build_drawing_area() {
@@ -59,7 +59,6 @@ void Engine::build_drawing_area() {
     _overlay.set_vexpand(true);
     _draw_connection =
         _drawing_area.signal_draw().connect(sigc::mem_fun(*_canva, &Canva::display_canva));
-    // _drawing_area.signal_draw().connect(sigc::mem_fun(*_canva, &Canva::display_canva));
     _drawing_area.add_events(Gdk::SCROLL_MASK | Gdk::BUTTON_PRESS_MASK | Gdk::POINTER_MOTION_MASK |
                              Gdk::BUTTON_RELEASE_MASK);
     _drawing_area.signal_button_press_event().connect(
@@ -101,4 +100,10 @@ void Engine::switch_canva(std::shared_ptr<Canva> canva) {
         _drawing_area.signal_draw().connect(sigc::mem_fun(*_canva, &Canva::display_canva));
     _drawing_area.queue_draw();
 }
+
+void Engine::zoom_on_canva(float coef) {
+    _canva->zoom_view(coef);
+    _drawing_area.queue_draw();
+}
+
 } // namespace vipe
