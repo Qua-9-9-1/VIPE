@@ -40,6 +40,7 @@ class Canva {
     void zoom_view(double factor);
     void apply_canva_drawing_factors(int& x, int& y);
     void center_and_zoom_picture(int window_width, int window_height);
+    void update_background();
     void set_background_color(int r, int g, int b) { _background_color = cv::Scalar(b, g, r, 255); }
     Layer&                             get_selected_layer() { return _layers[_selected_layer]; }
     int                                get_selected_layer_index() { return _selected_layer; }
@@ -68,18 +69,19 @@ class Canva {
     cv::Mat blend_normal(const cv::Mat& base, const cv::Mat& overlay, double alpha);
 
   private:
-    int                _view_offset_x;
-    int                _view_offset_y;
-    double             _zoom_factor;
-    cv::Scalar         _background_color;
-    cv::Mat            _background;
-    cv::Mat            _bg_tiled;
-    cv::Mat            _image;
-    int                _selected_layer;
-    std::vector<Layer> _layers;
-    std::string        _current_filename;
-    int                _prev_x;
-    int                _prev_y;
-    cv::Scalar         _color;
+    int                           _view_offset_x;
+    int                           _view_offset_y;
+    double                        _zoom_factor;
+    cv::Scalar                    _background_color;
+    cv::Mat                       _background;
+    cv::Mat                       _bg_tiled;
+    cv::Mat                       _image;
+    int                           _selected_layer;
+    std::vector<Layer>            _layers;
+    std::string                   _current_filename;
+    int                           _prev_x;
+    int                           _prev_y;
+    cv::Scalar                    _color;
+    Cairo::RefPtr<Cairo::Pattern> _bg_pattern;
 };
 } // namespace vipe

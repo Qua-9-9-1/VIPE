@@ -21,11 +21,7 @@ bool Canva::display_canva(const Cairo::RefPtr<Cairo::Context>& cr) {
         return false;
     try {
         cv::Mat image_rgba;
-        cv::Mat bg_rgba;
-
-        convert_to_RGBA(_bg_tiled, bg_rgba);
-        auto bg_pattern = create_repeating_pattern(bg_rgba);
-        cr->set_source(bg_pattern);
+        cr->set_source(_bg_pattern);
         cr->rectangle(_view_offset_x, _view_offset_y, _image.cols * _zoom_factor,
                       _image.rows * _zoom_factor);
         cr->fill();
@@ -63,7 +59,7 @@ bool Canva::display_canva(const Cairo::RefPtr<Cairo::Context>& cr) {
 
 void Canva::create_blank_picture(int width, int height) {
     _image = cv::Mat(width, height, CV_8UC4, cv::Scalar(255, 255, 255, 255));
-    recalculate_background(cv::Size(_image.cols, _image.rows));
+    update_background();
     _layers[0].image = _image;
 }
 
@@ -84,6 +80,12 @@ void Canva::recalculate_background(const cv::Size& new_size) {
 
 void Canva::on_draw(const Cairo::RefPtr<Cairo::Context>& cr) {}
 
+void Canva::update_background() {
+    recalculate_background(cv::Size(_image.cols, _image.rows));
+    convert_to_RGBA(_bg_tiled, _bg_tiled);
+    _bg_pattern = create_repeating_pattern(_bg_tiled);
+}
+
 void Canva::set_image(const std::string& filename) {
     _layers.clear();
     add_layer();
@@ -92,7 +94,7 @@ void Canva::set_image(const std::string& filename) {
         std::cerr << "Erreur lors du chargement de l'image." << std::endl;
     }
     convert_to_RGBA(_image, _image);
-    recalculate_background(cv::Size(_image.cols, _image.rows));
+    update_background();
     _layers[0].image = _image;
 }
 
@@ -193,6 +195,7 @@ void Canva::add_layer_from_image(const std::string& filename) {
     layer.blend_mode = 0;
     _selected_layer  = _layers.size();
     _layers.push_back(layer);
+    update_background();
 }
 
 void Canva::delete_layer(int index) {
