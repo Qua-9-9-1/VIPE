@@ -164,7 +164,6 @@ void LayersPanel::on_move_layer_down(int index) {
 
 void LayersPanel::on_add_layer_from_image() {
     Gtk::FileChooserDialog dialog("Choisir une image", Gtk::FILE_CHOOSER_ACTION_OPEN);
-    // dialog.set_transient_for(*this);
     dialog.add_button("Annuler", Gtk::RESPONSE_CANCEL);
     dialog.add_button("Ouvrir", Gtk::RESPONSE_OK);
     auto filter_image = Gtk::FileFilter::create();
