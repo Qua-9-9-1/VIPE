@@ -176,6 +176,7 @@ void LayersPanel::on_add_layer_from_image() {
         std::string filename = dialog.get_filename();
         _canva.add_layer_from_image(filename);
     }
+    update_layer_list();
     _drawing_area.queue_draw();
 }
 
