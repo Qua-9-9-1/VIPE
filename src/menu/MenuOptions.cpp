@@ -86,14 +86,13 @@ void Menu::create_sub_menu() {
 }
 
 void Menu::update_tool_types(std::vector<std::string> tool_types) {
-    _tool_type = 0;
     _tool_type_combo->remove_all();
     if (!tool_types.empty()) {
         for (const auto& option : tool_types) {
             _tool_type_combo->append(option);
         }
-        _tool_type_combo->set_active(_tool_type);
         _tool_type_combo->set_sensitive(true);
+        _tool_type_combo->set_active(0);
         _tool_type_combo->signal_changed().connect(
             [this]() { _tool_type = _tool_type_combo->get_active_row_number(); });
     } else {
