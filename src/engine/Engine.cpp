@@ -23,7 +23,7 @@ Engine::Engine()
     _toolkit = std::make_unique<Toolkit>(*this);
     new_file();
     _color_palette = std::make_shared<ColorPalette>();
-    _layer_panel   = std::make_unique<LayersPanel>(*_canva, _drawing_area);
+    _layer_panel   = std::make_unique<LayersPanel>(_canva, _drawing_area);
     signal_key_press_event().connect(sigc::mem_fun(*this, &Engine::on_key_press));
     signal_size_allocate().connect(sigc::mem_fun(*this, &Engine::on_window_resize));
 
@@ -82,23 +82,20 @@ void Engine::update_menu_tool_types(std::vector<std::string> tool_types) {
     _menu.update_tool_types(tool_types);
 }
 
-void Engine::switch_canva(std::shared_ptr<Canva> canva) {
-    if (!canva) {
-        std::cerr << "Aucun canva à charger." << std::endl;
-        _canva = nullptr;
-        _drawing_area.queue_draw();
+void Engine::switch_canva(int index) {
+    if (index < 0 || index >= _canvas.size()) {
         return;
     }
-    _canva = canva;
-    if (_layer_panel != nullptr) {
-        _layer_panel->set_canva(*canva);
-    }
+    _canva = _canvas[index];
     if (_draw_connection.connected()) {
         _draw_connection.disconnect();
+        _draw_connection =
+            _drawing_area.signal_draw().connect(sigc::mem_fun(*_canva, &Canva::display_canva));
+        _drawing_area.queue_draw();
     }
-    _draw_connection =
-        _drawing_area.signal_draw().connect(sigc::mem_fun(*_canva, &Canva::display_canva));
-    _drawing_area.queue_draw();
+    if (_layer_panel) {
+        _layer_panel->set_canva(_canva);
+    }
 }
 
 void Engine::zoom_on_canva(float coef) {

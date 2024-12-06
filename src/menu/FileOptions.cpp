@@ -5,7 +5,8 @@ namespace vipe {
 void Engine::new_file() {
     auto new_canva = std::make_shared<Canva>();
     _canvas.push_back(new_canva);
-    switch_canva(new_canva);
+    _current_canva = _canvas.size() - 1;
+    switch_canva(_current_canva);
     _canva->create_blank_picture(800, 600);
     _canva->center_and_zoom_picture(get_width(), get_height());
     _drawing_area.queue_draw();
@@ -31,7 +32,8 @@ void Engine::open_file() {
 void Engine::open_file_from_path(const std::string& filename) {
     auto new_canva = std::make_shared<Canva>();
     _canvas.push_back(new_canva);
-    switch_canva(new_canva);
+    _current_canva = _canvas.size() - 1;
+    switch_canva(_current_canva);
     _canva->set_image(filename);
     _canva->set_filename(filename);
     _canva->center_and_zoom_picture(get_width(), get_height());
@@ -118,7 +120,8 @@ void Engine::close_file() {
         if (index >= _canvas.size()) {
             index = _canvas.size() - 1;
         }
-        switch_canva(_canvas[index]);
+        _current_canva = index;
+        switch_canva(_current_canva);
     }
 }
 

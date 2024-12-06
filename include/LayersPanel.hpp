@@ -12,9 +12,9 @@
 namespace vipe {
 class LayersPanel {
   public:
-    LayersPanel(Canva& canva, Gtk::DrawingArea& drawing_area);
+    LayersPanel(std::shared_ptr<Canva> canva, Gtk::DrawingArea& drawing_area);
     ~LayersPanel();
-    void           set_canva(Canva& canva);
+    void           set_canva(std::shared_ptr<Canva> canva);
     FloatingPanel& get_layer_panel() { return _layer_panel; }
     FloatingPanel& get_options_panel() { return _layer_options; }
 
@@ -46,11 +46,12 @@ class LayersPanel {
     void on_close_options_panel();
 
   private:
-    Canva&                 _canva;
+    std::shared_ptr<Canva> _canva;
     Gtk::DrawingArea&      _drawing_area;
     std::vector<Gtk::Box*> _layers;
     Gtk::Box*              _last_selected_layer;
     Gtk::Box               _layer_list_container;
+    Gtk::Box               _layer_gestion_box;
     FloatingPanel          _layer_panel;
     Gtk::Box               _layer_options_container;
     FloatingPanel          _layer_options;

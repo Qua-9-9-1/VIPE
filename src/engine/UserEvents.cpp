@@ -189,6 +189,24 @@ bool Engine::key_events(GdkEventKey* event) {
         zoom_on_canva(-0.1);
         return true;
     }
+    if ((event->keyval == GDK_KEY_b || event->keyval == GDK_KEY_B)) {
+        if (_current_canva == 0) {
+            _current_canva = _canvas.size() - 1;
+        } else {
+            --_current_canva;
+        }
+        switch_canva(_current_canva);
+        return true;
+    }
+    if ((event->keyval == GDK_KEY_n || event->keyval == GDK_KEY_N)) {
+        if (_current_canva == _canvas.size() - 1) {
+            _current_canva = 0;
+        } else {
+            ++_current_canva;
+        }
+        switch_canva(_current_canva);
+        return true;
+    }
     if ((event->keyval == GDK_KEY_o || event->keyval == GDK_KEY_O)) {
         _toolkit->get_tool_panel().display_panel();
         _layer_panel->get_layer_panel().display_panel();
