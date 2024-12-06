@@ -20,40 +20,59 @@ bool Canva::display_canva(const Cairo::RefPtr<Cairo::Context>& cr) {
     if (_image.empty())
         return false;
     try {
-        cv::Mat image_rgba;
-        cr->set_source(_bg_pattern);
+        cv::Mat bg_rgba;
+        convert_to_RGBA(_bg_tiled, bg_rgba);
+        auto bg_pattern = create_repeating_pattern(bg_rgba);
+        cr->set_source(bg_pattern);
         cr->rectangle(_view_offset_x, _view_offset_y, _image.cols * _zoom_factor,
                       _image.rows * _zoom_factor);
         cr->fill();
-        bool first_layer = true;
-        for (const auto& layer : _layers) {
-            if (!layer.visible)
+        update_layer_cache();
+        for (const auto& cached_layer : _cached_layers) {
+            if (!cached_layer.visible)
                 continue;
             cr->save();
-            convert_to_RGBA(layer.image, image_rgba);
-            cv::resize(image_rgba, image_rgba, cv::Size(), _zoom_factor, _zoom_factor,
-                       cv::INTER_NEAREST);
-            auto surface = create_cairo_surface(image_rgba);
+            auto surface = create_cairo_surface(cached_layer.cached_image);
             cr->set_source(surface, _view_offset_x, _view_offset_y);
-            cr->scale(_zoom_factor, _zoom_factor);
-            if (!first_layer) {
-                switch (layer.blend_mode) {
-                case 1:
-                    cr->set_operator(Cairo::OPERATOR_ADD);
-                    break;
-                default:
-                    cr->set_operator(Cairo::OPERATOR_OVER);
-                    break;
-                }
+            switch (cached_layer.blend_mode) {
+            case 1:
+                cr->set_operator(Cairo::OPERATOR_ADD);
+                break;
+            default:
+                cr->set_operator(Cairo::OPERATOR_OVER);
+                break;
             }
-            cr->paint_with_alpha(layer.opacity / 100.0);
+            cr->paint_with_alpha(cached_layer.opacity / 100.0);
             cr->restore();
-            first_layer = false;
         }
         return true;
     } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
         return false;
+    }
+}
+
+void Canva::update_layer_cache() {
+    if (_cached_layers.size() != _layers.size()) {
+        _cached_layers.resize(_layers.size());
+    }
+
+    for (size_t i = 0; i < _layers.size(); ++i) {
+        const auto& layer        = _layers[i];
+        auto&       cached_layer = _cached_layers[i];
+
+        if (layer.visible != cached_layer.visible || layer.blend_mode != cached_layer.blend_mode ||
+            layer.opacity != cached_layer.opacity || _zoom_factor != cached_layer.zoom_factor ||
+            cached_layer.needs_update) {
+            convert_to_RGBA(layer.image, cached_layer.cached_image);
+            cv::resize(cached_layer.cached_image, cached_layer.cached_image, cv::Size(),
+                       _zoom_factor, _zoom_factor, cv::INTER_NEAREST);
+            cached_layer.visible      = layer.visible;
+            cached_layer.blend_mode   = layer.blend_mode;
+            cached_layer.opacity      = layer.opacity;
+            cached_layer.zoom_factor  = _zoom_factor;
+            cached_layer.needs_update = false;
+        }
     }
 }
 
@@ -284,4 +303,11 @@ cv::Mat blend_multiply(const cv::Mat& base, const cv::Mat& overlay) {
     }
     return result;
 }
+
+void Canva::mark_layer_for_update(int layer_index) {
+    if (layer_index < _cached_layers.size()) {
+        _cached_layers[layer_index].needs_update = true;
+    }
+}
+
 } // namespace vipe

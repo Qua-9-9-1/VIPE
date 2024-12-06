@@ -18,6 +18,7 @@ void Canva::cursor_draw(int x1, int y1, int size) {
         cv::line(layer, cv::Point(_prev_x, _prev_y), cv::Point(x1, y1), _color, size);
     }
     set_point_pos(x1, y1);
+    mark_layer_for_update(_selected_layer);
 }
 
 void Canva::cursor_square(int x1, int y1, int size) {
@@ -38,8 +39,8 @@ void Canva::cursor_square(int x1, int y1, int size) {
                           cv::Point(xi + size / 2, yi + size / 2), _color, cv::FILLED);
         }
     }
-
     set_point_pos(x1, y1);
+    mark_layer_for_update(_selected_layer);
 }
 
 void Canva::cursor_triangle(int x1, int y1, int size) {
@@ -61,8 +62,8 @@ void Canva::cursor_triangle(int x1, int y1, int size) {
             cv::fillConvexPoly(layer, points, _color);
         }
     }
-
     set_point_pos(x1, y1);
+    mark_layer_for_update(_selected_layer);
 }
 
 void Canva::cursor_pastel(int x1, int y1, int size) {
@@ -78,8 +79,8 @@ void Canva::cursor_pastel(int x1, int y1, int size) {
         int dy = (rand() % size) - size / 2;
         cv::circle(layer, cv::Point(x1 + dx, y1 + dy), 1, _color, cv::FILLED);
     }
-
     set_point_pos(x1, y1);
+    mark_layer_for_update(_selected_layer);
 }
 
 void Canva::cursor_spray(int x1, int y1, int size) {
@@ -98,8 +99,8 @@ void Canva::cursor_spray(int x1, int y1, int size) {
             layer.at<cv::Vec4b>(y1 + dy, x1 + dx) = _color;
         }
     }
-
     set_point_pos(x1, y1);
+    mark_layer_for_update(_selected_layer);
 }
 
 void Canva::color_fill() {
@@ -111,6 +112,7 @@ void Canva::color_fill() {
         cv::floodFill(layer, cv::Point(_prev_x, _prev_y), _color, 0, cv::Scalar(0, 0, 0, 0),
                       cv::Scalar(0, 0, 0, 0), cv::FLOODFILL_FIXED_RANGE);
     }
+    mark_layer_for_update(_selected_layer);
 }
 
 cv::Scalar Canva::pick_color(int x, int y) {

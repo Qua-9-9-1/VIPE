@@ -19,12 +19,22 @@ struct Layer {
     int         blend_mode;
 };
 
+struct CachedLayer {
+    cv::Mat cached_image;
+    bool    visible;
+    int     blend_mode;
+    double  opacity;
+    double  zoom_factor;
+    bool    needs_update;
+};
+
 class Canva {
   public:
     Canva();
     ~Canva();
     void update();
     bool display_canva(const Cairo::RefPtr<Cairo::Context>& cr);
+    void update_layer_cache();
     void create_blank_picture(int width, int height);
     void on_draw(const Cairo::RefPtr<Cairo::Context>& cr);
     void set_image(const std::string& filename);
@@ -66,6 +76,7 @@ class Canva {
     void                               move_layer_up(int index);
     void                               move_layer_down(int index);
     void                               merge_layers();
+    void                               mark_layer_for_update(int index);
     cv::Mat blend_normal(const cv::Mat& base, const cv::Mat& overlay, double alpha);
 
   private:
@@ -83,5 +94,6 @@ class Canva {
     int                           _prev_y;
     cv::Scalar                    _color;
     Cairo::RefPtr<Cairo::Pattern> _bg_pattern;
+    std::vector<CachedLayer>      _cached_layers;
 };
 } // namespace vipe
