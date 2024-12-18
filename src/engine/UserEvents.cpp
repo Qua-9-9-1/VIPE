@@ -17,6 +17,7 @@ bool Engine::on_button_press(GdkEventButton* event) {
 bool Engine::on_button_release(GdkEventButton* event) {
     if (event->type == GDK_BUTTON_RELEASE &&
         (event->button == 1 || event->button == 2 || event->button == 3)) {
+        canva_release_action(event->x, event->y);
         _canva->set_point_pos(-1, -1);
         _drawing_area.queue_draw();
     }
@@ -54,7 +55,7 @@ void Engine::canva_click_action(int x, int y, GdkEventButton* event) {
             } else if (current_tool == vipe::Tool::eraser) {
                 _canva->set_color(cv::Scalar(0, 0, 0, 0));
             }
-            canva_action(x, y);
+            canva_one_click_action(x, y);
         } else if (event->button == 2) {
             _canva->set_point_pos(x, y);
         } else if (event->button == 3) {
@@ -64,9 +65,32 @@ void Engine::canva_click_action(int x, int y, GdkEventButton* event) {
             } else if (current_tool == vipe::Tool::eraser) {
                 _canva->set_color(cv::Scalar(0, 0, 0, 0));
             }
-            canva_action(x, y);
+            canva_one_click_action(x, y);
         }
-        canva_action(x, y);
+    }
+}
+
+void Engine::canva_one_click_action(int x, int y) {
+    auto current_tool = _toolkit->get_current_tool();
+
+    if (current_tool == vipe::Tool::pencil) {
+        _canva->cursor_draw(x, y, 1);
+        _canva->cursor_draw(x, y, 1);
+    } else if (current_tool == vipe::Tool::brush || current_tool == vipe::Tool::eraser) {
+        brush_actions(x, y);
+        brush_actions(x, y);
+    } else if (current_tool == vipe::Tool::bucket) {
+        return;
+    } else if (current_tool == vipe::Tool::line) {
+        _canva->line_draw(x, y, _menu.get_tool_size());
+    }
+}
+
+void Engine::canva_release_action(int x, int y) {
+    auto current_tool = _toolkit->get_current_tool();
+
+    if (current_tool == vipe::Tool::line) {
+        _canva->line_draw(x, y, _menu.get_tool_size());
     }
 }
 
@@ -77,10 +101,6 @@ void Engine::canva_action(int x, int y) {
         _canva->cursor_draw(x, y, 1);
     } else if (current_tool == vipe::Tool::brush || current_tool == vipe::Tool::eraser) {
         brush_actions(x, y);
-    } else if (current_tool == vipe::Tool::bucket) {
-        return;
-    } else if (current_tool == vipe::Tool::line) {
-        return;
     }
 }
 

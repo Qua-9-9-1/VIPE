@@ -20,6 +20,7 @@ class Menu {
     void          create_effect_option();
     void          create_image_option();
     void          create_sub_menu();
+    void          create_canvas_widget();
     void          create_bottom_bar();
     void          update_tool_types(std::vector<std::string> tool_types);
 
@@ -28,6 +29,7 @@ class Menu {
     Engine&            _engine;
     int                _tool_type;
     Gtk::MenuBar       _menu_bar;
+    Gtk::Box           _canvas_widget;
     Gtk::Box           _bottom_bar;
     Gtk::VBox          _sub_menu;
     Gtk::ComboBoxText* _tool_type_combo;

@@ -98,6 +98,11 @@ void Menu::create_bottom_bar() {
     _bottom_bar.pack_end(*zoom_out_button, Gtk::PACK_SHRINK);
 }
 
+void Menu::create_canvas_widget() {
+    // _canvas_widget.set_orientation(Gtk::ORIENTATION_HORIZONTAL);
+    // _canvas_widget.pack_start(_sub_menu, Gtk::PACK_SHRINK);
+}
+
 void Menu::update_tool_types(std::vector<std::string> tool_types) {
     _tool_type_combo->remove_all();
     if (!tool_types.empty()) {

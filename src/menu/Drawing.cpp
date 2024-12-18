@@ -103,6 +103,20 @@ void Canva::cursor_spray(int x1, int y1, int size) {
     mark_layer_for_update(_selected_layer);
 }
 
+void Canva::line_draw(int x, int y, int size) {
+    auto& layer = _layers[_selected_layer].image;
+    apply_canva_drawing_factors(x, y);
+    if (_prev_x == -1 && _prev_y == -1) {
+        set_point_pos(x, y);
+        return;
+    }
+
+    if (layer.empty())
+        return;
+    cv::line(layer, cv::Point(_prev_x, _prev_y), cv::Point(x, y), _color, size);
+    mark_layer_for_update(_selected_layer);
+}
+
 void Canva::color_fill() {
     auto& layer = _layers[_selected_layer].image;
     if (layer.empty())

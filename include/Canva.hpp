@@ -63,6 +63,7 @@ class Canva {
     void                               cursor_triangle(int x1, int y1, int size);
     void                               cursor_pastel(int x1, int y1, int size);
     void                               cursor_spray(int x1, int y1, int size);
+    void                               line_draw(int x, int y, int size);
     void                               color_fill();
     cv::Scalar                         pick_color(int x, int y);
     void                               recalculate_background(const cv::Size& new_size);
