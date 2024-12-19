@@ -67,6 +67,9 @@ void Menu::create_effect_option() {
 }
 
 void Menu::create_sub_menu() {
+    _open_files_box = Gtk::make_managed<Gtk::Box>(Gtk::ORIENTATION_HORIZONTAL);
+    _open_files_box->set_spacing(5);
+
     auto label            = Gtk::make_managed<Gtk::Label>("Taille du pinceau:");
     auto brush_size_scale = Gtk::make_managed<Gtk::Scale>();
     auto horizontal_box   = Gtk::make_managed<Gtk::Box>(Gtk::ORIENTATION_HORIZONTAL);
@@ -81,8 +84,98 @@ void Menu::create_sub_menu() {
     horizontal_box->pack_start(*_tool_type_combo, Gtk::PACK_SHRINK);
     horizontal_box->pack_start(*brush_size_scale, Gtk::PACK_EXPAND_WIDGET);
     _sub_menu.set_orientation(Gtk::ORIENTATION_VERTICAL);
+    _sub_menu.pack_start(*_open_files_box, Gtk::PACK_SHRINK);
     _sub_menu.pack_start(*label, Gtk::PACK_SHRINK);
     _sub_menu.pack_start(*horizontal_box, Gtk::PACK_SHRINK);
+}
+
+void Menu::add_open_file(const std::string& file_name) {
+    auto file_box = Gtk::make_managed<Gtk::Box>(Gtk::ORIENTATION_HORIZONTAL);
+    file_box->set_size_request(150, 50);
+    clear_selection();
+    file_box->override_background_color(Gdk::RGBA("#E0E0FF"));
+
+    auto file_event_box = Gtk::make_managed<Gtk::EventBox>();
+    file_event_box->add(*file_box);
+
+    _file_boxes.push_back(file_event_box);
+
+    file_event_box->signal_button_press_event().connect(
+        [this, file_event_box](GdkEventButton*) -> bool {
+            clear_selection();
+
+            auto it = std::find(_file_boxes.begin(), _file_boxes.end(), file_event_box);
+            if (it != _file_boxes.end()) {
+                int index = std::distance(_file_boxes.begin(), it);
+
+                on_file_clicked(index);
+            }
+
+            auto file_box = dynamic_cast<Gtk::Box*>(file_event_box->get_child());
+            if (file_box) {
+                file_box->override_background_color(Gdk::RGBA("#E0E0FF"));
+            }
+            _selected_file_box = file_event_box;
+            return true;
+        });
+
+    auto file_label = Gtk::make_managed<Gtk::Label>(file_name);
+    file_label->set_ellipsize(Pango::ELLIPSIZE_END);
+
+    auto close_button = Gtk::make_managed<Gtk::Button>("X");
+    close_button->set_size_request(20, 20);
+    close_button->signal_clicked().connect(
+        [this, file_event_box]() { remove_open_file(file_event_box); });
+
+    file_box->pack_start(*file_label, Gtk::PACK_EXPAND_WIDGET);
+    file_box->pack_end(*close_button, Gtk::PACK_SHRINK);
+    _selected_file_box = file_event_box;
+
+    _open_files_box->pack_start(*file_event_box, Gtk::PACK_SHRINK);
+    _open_files_box->show_all_children();
+}
+
+void Menu::clear_selection() {
+    if (_selected_file_box) {
+        auto selected_box = dynamic_cast<Gtk::Box*>(_selected_file_box->get_child());
+        if (selected_box) {
+            selected_box->override_background_color(Gdk::RGBA("lightgray"));
+        }
+        _selected_file_box = nullptr;
+    }
+}
+
+void Menu::on_file_clicked(int index) { _engine.switch_canva(index); }
+
+void Menu::remove_open_file(int index) {
+    if (index >= 0 && index < _file_boxes.size()) {
+        _open_files_box->remove(*_file_boxes[index]);
+        _file_boxes.erase(_file_boxes.begin() + index);
+        _open_files_box->show_all_children();
+    }
+}
+
+void Menu::remove_open_file(Gtk::EventBox* file_event_box) {
+    auto it = std::find(_file_boxes.begin(), _file_boxes.end(), file_event_box);
+    if (it != _file_boxes.end()) {
+        int index = std::distance(_file_boxes.begin(), it);
+        _engine.close_file_from_id(index);
+    }
+    auto new_selection = _engine.get_current_canva_index();
+    clear_selection();
+    _file_boxes[new_selection]->get_child()->override_background_color(Gdk::RGBA("#E0E0FF"));
+}
+
+void Menu::update_open_file_name(int index, const std::string& file_name) {
+    if (index >= 0 && index < _file_boxes.size()) {
+        auto file_box = dynamic_cast<Gtk::Box*>(_file_boxes[index]->get_child());
+        if (file_box) {
+            auto file_label = dynamic_cast<Gtk::Label*>(file_box->get_children().front());
+            if (file_label) {
+                file_label->set_text(file_name);
+            }
+        }
+    }
 }
 
 void Menu::create_bottom_bar() {
@@ -96,11 +189,6 @@ void Menu::create_bottom_bar() {
     zoom_out_button->set_image_from_icon_name("zoom-out-symbolic", Gtk::ICON_SIZE_BUTTON);
     zoom_out_button->signal_clicked().connect([this] { _engine.zoom_on_canva(-0.1); });
     _bottom_bar.pack_end(*zoom_out_button, Gtk::PACK_SHRINK);
-}
-
-void Menu::create_canvas_widget() {
-    // _canvas_widget.set_orientation(Gtk::ORIENTATION_HORIZONTAL);
-    // _canvas_widget.pack_start(_sub_menu, Gtk::PACK_SHRINK);
 }
 
 void Menu::update_tool_types(std::vector<std::string> tool_types) {

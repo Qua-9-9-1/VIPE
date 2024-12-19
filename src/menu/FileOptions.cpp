@@ -7,6 +7,7 @@ void Engine::new_file() {
     _canvas.push_back(new_canva);
     _current_canva = _canvas.size() - 1;
     switch_canva(_current_canva);
+    _menu.add_open_file("Nouveau");
     _canva->create_blank_picture(800, 600);
     _canva->center_and_zoom_picture(get_width(), get_height());
     _drawing_area.queue_draw();
@@ -30,12 +31,15 @@ void Engine::open_file() {
 }
 
 void Engine::open_file_from_path(const std::string& filename) {
-    auto new_canva = std::make_shared<Canva>();
+    auto                  new_canva = std::make_shared<Canva>();
+    std::filesystem::path file_path(filename);
+    std::string           file_name = file_path.filename().string();
     _canvas.push_back(new_canva);
     _current_canva = _canvas.size() - 1;
     switch_canva(_current_canva);
+    _menu.add_open_file(file_name);
     _canva->set_image(filename);
-    _canva->set_filename(filename);
+    _canva->set_filename(file_name);
     _canva->center_and_zoom_picture(get_width(), get_height());
     _drawing_area.queue_draw();
 }
@@ -96,6 +100,7 @@ void Engine::save_as_file() {
             filename += ".jpg";
         }
         _canva->set_filename(filename);
+        _menu.update_open_file_name(_current_canva, filename);
         if (format == "PNG") {
             cv::imwrite(_canva->get_filename(), image, {cv::IMWRITE_PNG_COMPRESSION, 3});
         } else if (format == "JPEG") {
@@ -108,12 +113,27 @@ void Engine::close_file() {
     if (_canvas.size() == 1 || _canvas.empty()) {
         exit(0);
     }
-    auto current_canva = std::find(_canvas.begin(), _canvas.end(), _canva);
-    if (current_canva == _canvas.end()) {
-        _canvas.push_back(_canva);
-    }
-    size_t index = std::distance(_canvas.begin(), current_canva);
+    auto   current_canva = std::find(_canvas.begin(), _canvas.end(), _canva);
+    size_t index         = std::distance(_canvas.begin(), current_canva);
     _canvas.erase(current_canva);
+    _menu.remove_open_file(index);
+    if (_canvas.empty()) {
+        _canva = nullptr;
+    } else {
+        if (index >= _canvas.size()) {
+            index = _canvas.size() - 1;
+        }
+        _current_canva = index;
+        switch_canva(_current_canva);
+    }
+}
+
+void Engine::close_file_from_id(int index) {
+    if (_canvas.size() == 1 || _canvas.empty()) {
+        exit(0);
+    }
+    _canvas.erase(_canvas.begin() + index);
+    _menu.remove_open_file(index);
     if (_canvas.empty()) {
         _canva = nullptr;
     } else {

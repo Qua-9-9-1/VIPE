@@ -7,6 +7,7 @@
 #include <iostream>
 #include <memory>
 #include <vector>
+#include <filesystem>
 
 #include "Menu.hpp"
 #include "Canva.hpp"
@@ -28,6 +29,7 @@ class Engine : public Gtk::Window {
     void              build_panels();
     Gtk::VBox&        get_vbox() { return _vbox; }
     Gtk::DrawingArea& get_drawing_area() { return _drawing_area; }
+    int               get_current_canva_index() { return _current_canva; }
     bool              onDraw(const Cairo::RefPtr<Cairo::Context>& cr);
     // file options
     void create_file_option();
@@ -41,6 +43,7 @@ class Engine : public Gtk::Window {
     void save_file();
     void save_as_file();
     void close_file();
+    void close_file_from_id(int index);
     // display options
     void fullscreen();
     // image options
@@ -77,7 +80,6 @@ class Engine : public Gtk::Window {
     std::unique_ptr<Toolkit>            _toolkit;
     std::unique_ptr<LayersPanel>        _layer_panel;
     std::shared_ptr<ColorPalette>       _color_palette;
-
-    int _current_canva = 0;
+    int                                 _current_canva = 0;
 };
 } // namespace vipe
