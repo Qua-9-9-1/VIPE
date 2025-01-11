@@ -9,6 +9,7 @@ Canva::Canva()
         std::cerr << "Erreur lors du chargement de l'image de fond." << std::endl;
     }
     add_layer();
+    update_selected_region();
 }
 
 Canva::~Canva() {}
@@ -45,6 +46,7 @@ bool Canva::display_canva(const Cairo::RefPtr<Cairo::Context>& cr) {
             cr->paint_with_alpha(cached_layer.opacity / 100.0);
             cr->restore();
         }
+        draw_selection(cr);
         return true;
     } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
@@ -52,27 +54,28 @@ bool Canva::display_canva(const Cairo::RefPtr<Cairo::Context>& cr) {
     }
 }
 
-void Canva::update_layer_cache() {
-    if (_cached_layers.size() != _layers.size()) {
-        _cached_layers.resize(_layers.size());
-    }
+void Canva::draw_selection(const Cairo::RefPtr<Cairo::Context>& cr) {
+    if (!_selection.is_selection_active())
+        return;
+    if (_selection.get_type() == Selection::Type::Rectangular) {
+        auto   start  = _selection.get_start();
+        auto   end    = _selection.get_end();
+        double x      = std::min(start.x, end.x);
+        double y      = std::min(start.y, end.y);
+        double width  = std::abs(end.x - start.x);
+        double height = std::abs(end.y - start.y);
 
-    for (size_t i = 0; i < _layers.size(); ++i) {
-        const auto& layer        = _layers[i];
-        auto&       cached_layer = _cached_layers[i];
+        cr->set_source_rgba(0, 0.4, 0.7, 0.2);
+        cr->rectangle(x * _zoom_factor + _view_offset_x, y * _zoom_factor + _view_offset_y,
+                      width * _zoom_factor, height * _zoom_factor);
+        cr->fill();
 
-        if (layer.visible != cached_layer.visible || layer.blend_mode != cached_layer.blend_mode ||
-            layer.opacity != cached_layer.opacity || _zoom_factor != cached_layer.zoom_factor ||
-            cached_layer.needs_update) {
-            convert_to_RGBA(layer.image, cached_layer.cached_image);
-            cv::resize(cached_layer.cached_image, cached_layer.cached_image, cv::Size(),
-                       _zoom_factor, _zoom_factor, cv::INTER_NEAREST);
-            cached_layer.visible      = layer.visible;
-            cached_layer.blend_mode   = layer.blend_mode;
-            cached_layer.opacity      = layer.opacity;
-            cached_layer.zoom_factor  = _zoom_factor;
-            cached_layer.needs_update = false;
-        }
+        std::vector<double> dashes = {5.0, 5.0};
+        cr->set_dash(dashes, 0);
+        cr->set_source_rgba(0, 0, 0, 1.0);
+        cr->rectangle(x * _zoom_factor + _view_offset_x, y * _zoom_factor + _view_offset_y,
+                      width * _zoom_factor, height * _zoom_factor);
+        cr->stroke();
     }
 }
 
@@ -96,8 +99,6 @@ void Canva::recalculate_background(const cv::Size& new_size) {
         }
     }
 }
-
-void Canva::on_draw(const Cairo::RefPtr<Cairo::Context>& cr) {}
 
 void Canva::update_background() {
     recalculate_background(cv::Size(_image.cols, _image.rows));
@@ -174,140 +175,24 @@ cv::Mat Canva::get_merged_image() {
     return merged;
 }
 
-void Canva::add_layer() {
-    Layer layer;
-    layer.image      = cv::Mat(_image.size(), _image.type(), cv::Scalar(0, 0, 0, 0));
-    layer.visible    = true;
-    layer.opacity    = 100;
-    layer.name       = "Calque " + std::to_string(_layers.size() + 1);
-    layer.blend_mode = 0;
-    _selected_layer  = _layers.size();
-    _layers.push_back(layer);
-}
+void Canva::update_selected_region() {
 
-void Canva::add_layer_from_image(const std::string& filename) {
-    Layer layer;
-    layer.image = cv::imread(filename, cv::IMREAD_UNCHANGED);
-    if (layer.image.empty()) {
-        std::cerr << "Erreur lors du chargement de l'image." << std::endl;
-        return;
+    cv::Mat selection_mask(_image.size(), CV_8UC1, cv::Scalar(0));
+
+    if (_selection.is_selection_active()) {
+        auto     selection_start = _selection.get_start();
+        auto     selection_end   = _selection.get_end();
+        cv::Rect roi(std::min(selection_start.x, selection_end.x),
+                     std::min(selection_start.y, selection_end.y),
+                     std::abs(selection_end.x - selection_start.x),
+                     std::abs(selection_end.y - selection_start.y));
+
+        selection_mask(roi).setTo(cv::Scalar(255));
+    } else {
+        cv::Rect roi(0, 0, _image.cols, _image.rows);
+        selection_mask(roi).setTo(cv::Scalar(255));
     }
-    convert_to_RGBA(layer.image, layer.image);
-    int new_width  = std::max(layer.image.cols, _image.cols);
-    int new_height = std::max(layer.image.rows, _image.rows);
-
-    if (new_width > _image.cols || new_height > _image.rows) {
-        cv::Mat new_canva(cv::Size(new_width, new_height), _image.type(), cv::Scalar(0, 0, 0, 0));
-        _image.copyTo(new_canva(cv::Rect(0, 0, _image.cols, _image.rows)));
-        _image = new_canva;
-        for (auto& existing_layer : _layers) {
-            cv::Mat resized_layer(cv::Size(new_width, new_height), existing_layer.image.type(),
-                                  cv::Scalar(0, 0, 0, 0));
-            existing_layer.image.copyTo(resized_layer(
-                cv::Rect(0, 0, existing_layer.image.cols, existing_layer.image.rows)));
-            existing_layer.image = resized_layer;
-        }
-    }
-    layer.name       = "Calque " + std::to_string(_layers.size() + 1);
-    layer.visible    = true;
-    layer.opacity    = 100;
-    layer.blend_mode = 0;
-    _selected_layer  = _layers.size();
-    _layers.push_back(layer);
-    update_background();
-}
-
-void Canva::delete_layer(int index) {
-    if (index < 0 || index >= _layers.size()) {
-        throw std::out_of_range("Couche hors limites");
-    }
-    _layers.erase(_layers.begin() + index);
-}
-
-void Canva::move_layer(int index, int new_index) {
-    if (index < 0 || index >= _layers.size() || new_index < 0 || new_index >= _layers.size()) {
-        throw std::out_of_range("Couche hors limites");
-    }
-    auto layer_to_move = _layers[index];
-    _layers.erase(_layers.begin() + index);
-    _layers.insert(_layers.begin() + new_index, layer_to_move);
-    _selected_layer = new_index;
-}
-
-void Canva::move_layer_up(int index) {
-    if (index < 0 || index >= _layers.size()) {
-        throw std::out_of_range("Couche hors limites");
-    }
-    if (index == 0)
-        return;
-    auto layer_to_move = _layers[index];
-    _layers.erase(_layers.begin() + index);
-    _layers.insert(_layers.begin() + index - 1, layer_to_move);
-    _selected_layer = index - 1;
-}
-
-void Canva::move_layer_down(int index) {
-    if (index < 0 || index >= _layers.size()) {
-        throw std::out_of_range("Couche hors limites");
-    }
-    if (index == _layers.size() - 1)
-        return;
-    auto layer_to_move = _layers[index];
-    _layers.erase(_layers.begin() + index);
-    _layers.insert(_layers.begin() + index + 1, layer_to_move);
-    _selected_layer = index + 1;
-}
-
-void Canva::merge_layers() { _image = get_merged_image(); }
-
-cv::Mat Canva::blend_normal(const cv::Mat& base, const cv::Mat& overlay, double alpha) {
-    CV_Assert(base.type() == CV_8UC4 && overlay.type() == CV_8UC4);
-    cv::Mat result = base.clone();
-    for (int y = 0; y < base.rows; ++y) {
-        for (int x = 0; x < base.cols; ++x) {
-            cv::Vec4b bg_pixel = base.at<cv::Vec4b>(y, x);
-            cv::Vec4b fg_pixel = overlay.at<cv::Vec4b>(y, x);
-
-            double fg_alpha = (fg_pixel[3] / 255.0) * alpha;
-            double bg_alpha = bg_pixel[3] / 255.0;
-
-            double out_alpha = fg_alpha + bg_alpha * (1.0 - fg_alpha);
-
-            if (out_alpha > 0) {
-                for (int c = 0; c < 3; ++c) {
-                    result.at<cv::Vec4b>(y, x)[c] = static_cast<uchar>(
-                        (fg_pixel[c] * fg_alpha + bg_pixel[c] * bg_alpha * (1.0 - fg_alpha)) /
-                        out_alpha);
-                }
-                result.at<cv::Vec4b>(y, x)[3] = static_cast<uchar>(out_alpha * 255);
-            }
-        }
-    }
-    return result;
-}
-
-cv::Mat blend_multiply(const cv::Mat& base, const cv::Mat& overlay) {
-    CV_Assert(base.type() == CV_8UC4 && overlay.type() == CV_8UC4);
-    cv::Mat result = base.clone();
-    for (int y = 0; y < base.rows; ++y) {
-        for (int x = 0; x < base.cols; ++x) {
-            cv::Vec4b bg_pixel = base.at<cv::Vec4b>(y, x);
-            cv::Vec4b fg_pixel = overlay.at<cv::Vec4b>(y, x);
-
-            for (int c = 0; c < 3; ++c) {
-                result.at<cv::Vec4b>(y, x)[c] =
-                    static_cast<uchar>((bg_pixel[c] / 255.0) * (fg_pixel[c] / 255.0) * 255);
-            }
-            result.at<cv::Vec4b>(y, x)[3] = bg_pixel[3];
-        }
-    }
-    return result;
-}
-
-void Canva::mark_layer_for_update(int layer_index) {
-    if (layer_index < _cached_layers.size()) {
-        _cached_layers[layer_index].needs_update = true;
-    }
+    _selected_region = selection_mask;
 }
 
 } // namespace vipe

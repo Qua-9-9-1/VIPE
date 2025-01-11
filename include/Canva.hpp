@@ -7,6 +7,7 @@
 #include <iostream>
 #include <vector>
 
+#include "Selection.hpp"
 #include "FloatingPanel.hpp"
 
 namespace vipe {
@@ -34,9 +35,9 @@ class Canva {
     ~Canva();
     void update();
     bool display_canva(const Cairo::RefPtr<Cairo::Context>& cr);
+    void draw_selection(const Cairo::RefPtr<Cairo::Context>& cr);
     void update_layer_cache();
     void create_blank_picture(int width, int height);
-    void on_draw(const Cairo::RefPtr<Cairo::Context>& cr);
     void set_image(const std::string& filename);
     void set_filename(const std::string& filename) { _current_filename = filename; }
     void set_point_pos(int x, int y);
@@ -57,6 +58,7 @@ class Canva {
     std::vector<Layer>&                get_layers() { return _layers; }
     std::string                        get_filename() { return _current_filename; }
     cv::Mat                            get_merged_image();
+    void                               update_selected_region();
     void                               cursor_draw(int x1, int y1, int size);
     void                               cursor_erase(int x1, int y1, int size);
     void                               cursor_square(int x1, int y1, int size);
@@ -66,6 +68,9 @@ class Canva {
     void                               line_draw(int x, int y, int size);
     void                               color_fill();
     cv::Scalar                         pick_color(int x, int y);
+    void                               set_selection_start(int x, int y, int type);
+    void                               resize_selection(int x, int y, int type);
+    void                               set_selection_end(int x, int y, int type);
     void                               recalculate_background(const cv::Size& new_size);
     void                               convert_to_RGBA(const cv::Mat& src, cv::Mat& dst);
     Cairo::RefPtr<Cairo::ImageSurface> create_cairo_surface(const cv::Mat& image);
@@ -88,6 +93,7 @@ class Canva {
     cv::Mat                       _background;
     cv::Mat                       _bg_tiled;
     cv::Mat                       _image;
+    cv::Mat                       _selected_region;
     int                           _selected_layer;
     std::vector<Layer>            _layers;
     std::string                   _current_filename;
@@ -96,5 +102,6 @@ class Canva {
     cv::Scalar                    _color;
     Cairo::RefPtr<Cairo::Pattern> _bg_pattern;
     std::vector<CachedLayer>      _cached_layers;
+    Selection                     _selection;
 };
 } // namespace vipe

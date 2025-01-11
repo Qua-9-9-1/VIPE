@@ -284,7 +284,7 @@ void ColorPalette::rgb_to_hsv(double r, double g, double b, double& h, double& s
     s            = (max == 0) ? 0 : delta / max;
 
     if (delta == 0) {
-        h = 0; // Grayscale
+        h = 0;
     } else {
         if (r == max) {
             h = (g - b) / delta;
