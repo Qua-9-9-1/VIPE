@@ -1,11 +1,14 @@
 #pragma once
 
 #include <opencv2/opencv.hpp>
+#include <gtk/gtk.h>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <gtkmm.h>
 #include <iostream>
 #include <vector>
+#include <gtkmm/clipboard.h>
+#include <opencv2/imgcodecs.hpp>
 
 #include "Selection.hpp"
 #include "FloatingPanel.hpp"
@@ -60,6 +63,8 @@ class Canva {
     std::string                        get_filename() { return _current_filename; }
     cv::Mat                            get_merged_image();
     void                               update_selected_region();
+    void                               copy_from_layer_to_selection();
+    void                               empty_selection_on_layer();
     void                               cursor_draw(int x1, int y1, int size);
     void                               cursor_erase(int x1, int y1, int size);
     void                               cursor_square(int x1, int y1, int size);
@@ -76,6 +81,9 @@ class Canva {
     void                               move_selection(int x, int y);
     void                               emplace_selection();
     bool                               selection_out_of_bounds();
+    void                               copy_selection_to_clipboard();
+    void                               cut_selection_to_clipboard();
+    void                               paste_from_clipboard();
     void                               recalculate_background(const cv::Size& new_size);
     void                               convert_to_RGBA(const cv::Mat& src, cv::Mat& dst);
     Cairo::RefPtr<Cairo::ImageSurface> create_cairo_surface(const cv::Mat& image);

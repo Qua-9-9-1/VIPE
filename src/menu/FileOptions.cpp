@@ -60,6 +60,7 @@ void Engine::save_file() {
 }
 
 void Engine::save_as_file() {
+    _canva->emplace_selection();
     auto image = _canva->get_merged_image();
 
     if (image.empty()) {

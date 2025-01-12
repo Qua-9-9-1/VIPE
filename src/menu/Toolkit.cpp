@@ -10,11 +10,11 @@ Toolkit::Toolkit(Engine& engine)
 }
 
 void Toolkit::build_tool_grid() {
-    std::vector<std::string> tool_names = {"Pencil",    "Brush",  "Eraser",  "Cursor",
-                                           "Pipette",   "Bucket", "Text",    "Line",
-                                           "Selection", "Shape",  "Gradient"};
-    std::vector<Tool>        tools      = {pencil, brush, eraser,    cursor, pipette, bucket,
-                                           text,   line,  selection, shape,  gradient};
+    std::vector<std::string> tool_names = {"Pencil",    "Brush",   "Eraser",  "Cursor",
+                                           "Selection", "Pipette", "Bucket",  "Text",
+                                           "Line",      "Shape",   "Gradient"};
+    std::vector<Tool>        tools      = {pencil, brush, eraser, cursor, selection, pipette,
+                                           bucket, text,  line,   shape,  gradient};
 
     _icon_grid.set_column_homogeneous(true);
     _icon_grid.set_row_homogeneous(true);
@@ -36,6 +36,12 @@ void Toolkit::build_tool_grid() {
 
 Toolkit::~Toolkit() {}
 
+void Toolkit::set_current_tool(Tool tool) {
+    auto* clicked_button = _tool_buttons[static_cast<int>(tool)];
+    clicked_button->set_active(true);
+    on_tool_selected(tool, clicked_button);
+}
+
 void Toolkit::on_tool_selected(Tool tool, Gtk::ToggleButton* clicked_button) {
     if (_last_selected_button && _last_selected_button != clicked_button) {
         _last_selected_button->set_active(false);
@@ -55,6 +61,8 @@ std::vector<std::string> Toolkit::get_tool_type() {
         return {"Circle", "Square", "Triangle", "Pastel", "Spray", "fill"};
     case Tool::cursor:
         return {};
+    case Tool::selection:
+        return {"Rectangle", "Ellipse", "Lasso", "Magic Wand"};
     case Tool::pipette:
         return {};
     case Tool::bucket:
@@ -63,8 +71,6 @@ std::vector<std::string> Toolkit::get_tool_type() {
         return {"Text"};
     case Tool::line:
         return {"Line"};
-    case Tool::selection:
-        return {"Rectangle", "Ellipse", "Lasso", "Magic Wand"};
     case Tool::shape:
         return {"Rectangle", "Ellipse", "Triangle", "Polygon", "Star"};
     case Tool::gradient:

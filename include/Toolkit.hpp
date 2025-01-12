@@ -14,11 +14,11 @@ enum Tool {
     brush,
     eraser,
     cursor,
+    selection,
     pipette,
     bucket,
     text,
     line,
-    selection,
     shape,
     gradient
 };
@@ -28,6 +28,7 @@ class Toolkit {
     Toolkit(Engine& engine);
     ~Toolkit();
     int                      get_current_tool() { return _current_tool; }
+    void                     set_current_tool(Tool tool);
     void                     build_tool_grid();
     void                     on_tool_selected(Tool tool, Gtk::ToggleButton* clicked_button);
     FloatingPanel&           get_tool_panel() { return _tool_panel; }

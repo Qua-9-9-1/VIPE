@@ -191,6 +191,22 @@ bool Engine::canva_shortcuts(GdkEventKey* event) {
         _drawing_area.queue_draw();
         return true;
     }
+    if ((event->keyval == GDK_KEY_c || event->keyval == GDK_KEY_C)) {
+        _canva->copy_selection_to_clipboard();
+        _drawing_area.queue_draw();
+        return true;
+    }
+    if ((event->keyval == GDK_KEY_v || event->keyval == GDK_KEY_V)) {
+        _canva->paste_from_clipboard();
+        _toolkit->set_current_tool(vipe::Tool::cursor);
+        _drawing_area.queue_draw();
+        return true;
+    }
+    if ((event->keyval == GDK_KEY_x || event->keyval == GDK_KEY_X)) {
+        _canva->cut_selection_to_clipboard();
+        _drawing_area.queue_draw();
+        return true;
+    }
     return false;
 }
 
