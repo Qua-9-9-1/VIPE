@@ -9,7 +9,6 @@ Canva::Canva()
         std::cerr << "Erreur lors du chargement de l'image de fond." << std::endl;
     }
     add_layer();
-    update_selected_region();
 }
 
 Canva::~Canva() {}
@@ -29,7 +28,9 @@ bool Canva::display_canva(const Cairo::RefPtr<Cairo::Context>& cr) {
                       _image.rows * _zoom_factor);
         cr->fill();
         update_layer_cache();
-        for (const auto& cached_layer : _cached_layers) {
+        for (size_t i = 0; i < _cached_layers.size(); ++i) {
+            const auto& cached_layer = _cached_layers[i];
+
             if (!cached_layer.visible)
                 continue;
             cr->save();
@@ -45,8 +46,19 @@ bool Canva::display_canva(const Cairo::RefPtr<Cairo::Context>& cr) {
             }
             cr->paint_with_alpha(cached_layer.opacity / 100.0);
             cr->restore();
+            if (i == _selected_layer) {
+                cv::Mat layer_with_selection = cached_layer.cached_image.clone();
+
+                // Ajouter la sélection temporaire si active
+                render_selection(layer_with_selection);
+
+                // Dessiner la couche modifiée (avec la sélection)
+                auto selection_surface = create_cairo_surface(layer_with_selection);
+                cr->set_source(selection_surface, _view_offset_x, _view_offset_y);
+                cr->paint_with_alpha(cached_layer.opacity / 100.0);
+            }
         }
-        draw_selection(cr);
+        draw_selection_rect(cr);
         return true;
     } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
@@ -54,7 +66,49 @@ bool Canva::display_canva(const Cairo::RefPtr<Cairo::Context>& cr) {
     }
 }
 
-void Canva::draw_selection(const Cairo::RefPtr<Cairo::Context>& cr) {
+void Canva::render_selection(cv::Mat& canvas) {
+    if (!_selection.is_selection_active() || _selection.get_mask().empty()) {
+        return;
+    }
+
+    const cv::Mat& selection_mask = _selection.get_mask();
+    cv::Rect       render_region  = _selected_region;
+
+    int render_x      = render_region.x * _zoom_factor;
+    int render_y      = render_region.y * _zoom_factor;
+    int render_width  = render_region.width * _zoom_factor;
+    int render_height = render_region.height * _zoom_factor;
+
+    int visible_x      = std::max(0, render_x);
+    int visible_y      = std::max(0, render_y);
+    int visible_width  = std::min(render_width - (visible_x - render_x), canvas.cols - visible_x);
+    int visible_height = std::min(render_height - (visible_y - render_y), canvas.rows - visible_y);
+
+    if (visible_width <= 0 || visible_height <= 0) {
+        return;
+    }
+
+    int mask_x      = std::max(0, -render_region.x);
+    int mask_y      = std::max(0, -render_region.y);
+    int mask_width  = visible_width / _zoom_factor;
+    int mask_height = visible_height / _zoom_factor;
+
+    cv::Rect mask_region(mask_x, mask_y, mask_width, mask_height);
+    if (mask_region.width <= 0 || mask_region.height <= 0) {
+        return;
+    }
+
+    cv::Mat visible_mask = selection_mask(mask_region);
+
+    cv::Mat resized_mask;
+    cv::resize(visible_mask, resized_mask, cv::Size(visible_width, visible_height), 0, 0,
+               cv::INTER_NEAREST);
+
+    cv::Rect canvas_region(visible_x, visible_y, visible_width, visible_height);
+    resized_mask.copyTo(canvas(canvas_region));
+}
+
+void Canva::draw_selection_rect(const Cairo::RefPtr<Cairo::Context>& cr) {
     if (!_selection.is_selection_active())
         return;
     if (_selection.get_type() == Selection::Type::Rectangular) {
@@ -83,6 +137,7 @@ void Canva::create_blank_picture(int width, int height) {
     _image = cv::Mat(width, height, CV_8UC4, cv::Scalar(255, 255, 255, 255));
     update_background();
     _layers[0].image = _image;
+    update_selected_region();
 }
 
 void Canva::recalculate_background(const cv::Size& new_size) {
@@ -98,6 +153,14 @@ void Canva::recalculate_background(const cv::Size& new_size) {
             bg_resized(roi).copyTo(_bg_tiled(cv::Rect(x, y, width, height)));
         }
     }
+}
+
+void Canva::set_selected_layer(int index) {
+    if (index < 0 || index >= _layers.size()) {
+        throw std::out_of_range("Couche hors limites");
+    }
+    _selected_layer = index;
+    update_selected_region();
 }
 
 void Canva::update_background() {
@@ -116,6 +179,7 @@ void Canva::set_image(const std::string& filename) {
     convert_to_RGBA(_image, _image);
     update_background();
     _layers[0].image = _image;
+    update_selected_region();
 }
 
 void Canva::convert_to_RGBA(const cv::Mat& src, cv::Mat& dst) {
@@ -176,23 +240,28 @@ cv::Mat Canva::get_merged_image() {
 }
 
 void Canva::update_selected_region() {
-
-    cv::Mat selection_mask(_image.size(), CV_8UC1, cv::Scalar(0));
-
     if (_selection.is_selection_active()) {
-        auto     selection_start = _selection.get_start();
-        auto     selection_end   = _selection.get_end();
-        cv::Rect roi(std::min(selection_start.x, selection_end.x),
-                     std::min(selection_start.y, selection_end.y),
-                     std::abs(selection_end.x - selection_start.x),
-                     std::abs(selection_end.y - selection_start.y));
-
-        selection_mask(roi).setTo(cv::Scalar(255));
+        auto selection_start = _selection.get_start();
+        auto selection_end   = _selection.get_end();
+        _selected_region     = cv::Rect(std::min(selection_start.x, selection_end.x),
+                                        std::min(selection_start.y, selection_end.y),
+                                        std::abs(selection_end.x - selection_start.x),
+                                        std::abs(selection_end.y - selection_start.y));
+        auto& layer          = _layers[_selected_layer].image;
+        if (layer.empty()) {
+            return;
+        }
+        cv::Mat region_content = layer(_selected_region).clone();
+        _selection.set_mask(region_content);
     } else {
-        cv::Rect roi(0, 0, _image.cols, _image.rows);
-        selection_mask(roi).setTo(cv::Scalar(255));
+        _selected_region = cv::Rect(0, 0, _image.cols, _image.rows);
     }
-    _selected_region = selection_mask;
+}
+
+bool Canva::selection_out_of_bounds() {
+    return _selected_region.x < 0 || _selected_region.y < 0 ||
+           _selected_region.x + _selected_region.width > _image.cols ||
+           _selected_region.y + _selected_region.height > _image.rows;
 }
 
 } // namespace vipe

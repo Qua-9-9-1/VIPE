@@ -9,7 +9,19 @@
 
 namespace vipe {
 
-enum Tool { pencil, brush, eraser, pipette, bucket, text, line, selection, shape, gradient };
+enum Tool {
+    pencil,
+    brush,
+    eraser,
+    cursor,
+    pipette,
+    bucket,
+    text,
+    line,
+    selection,
+    shape,
+    gradient
+};
 
 class Toolkit {
   public:

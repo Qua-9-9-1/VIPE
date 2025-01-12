@@ -10,10 +10,11 @@ Toolkit::Toolkit(Engine& engine)
 }
 
 void Toolkit::build_tool_grid() {
-    std::vector<std::string> tool_names = {"Pencil", "Brush", "Eraser",    "Pipette", "Bucket",
-                                           "Text",   "Line",  "Selection", "Shape",   "Gradient"};
-    std::vector<Tool>        tools      = {pencil, brush, eraser,    pipette, bucket,
-                                           text,   line,  selection, shape,   gradient};
+    std::vector<std::string> tool_names = {"Pencil",    "Brush",  "Eraser",  "Cursor",
+                                           "Pipette",   "Bucket", "Text",    "Line",
+                                           "Selection", "Shape",  "Gradient"};
+    std::vector<Tool>        tools      = {pencil, brush, eraser,    cursor, pipette, bucket,
+                                           text,   line,  selection, shape,  gradient};
 
     _icon_grid.set_column_homogeneous(true);
     _icon_grid.set_row_homogeneous(true);
@@ -52,6 +53,8 @@ std::vector<std::string> Toolkit::get_tool_type() {
         return {"Circle", "Square", "Triangle", "Pastel", "Spray", "fill"};
     case Tool::eraser:
         return {"Circle", "Square", "Triangle", "Pastel", "Spray", "fill"};
+    case Tool::cursor:
+        return {};
     case Tool::pipette:
         return {};
     case Tool::bucket:

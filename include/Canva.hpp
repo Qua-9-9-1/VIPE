@@ -35,14 +35,15 @@ class Canva {
     ~Canva();
     void update();
     bool display_canva(const Cairo::RefPtr<Cairo::Context>& cr);
-    void draw_selection(const Cairo::RefPtr<Cairo::Context>& cr);
+    void draw_selection_rect(const Cairo::RefPtr<Cairo::Context>& cr);
+    void render_selection(cv::Mat& canvas);
     void update_layer_cache();
     void create_blank_picture(int width, int height);
     void set_image(const std::string& filename);
     void set_filename(const std::string& filename) { _current_filename = filename; }
     void set_point_pos(int x, int y);
     void set_color(cv::Scalar color) { _color = color; }
-    void set_selected_layer(int index) { _selected_layer = index; }
+    void set_selected_layer(int index);
     bool is_layer_visible(int index) { return _layers[index].visible; }
     void set_view_offset(int x, int y);
     void move_view(int x, int y, bool apply_zoom = true);
@@ -71,6 +72,10 @@ class Canva {
     void                               set_selection_start(int x, int y, int type);
     void                               resize_selection(int x, int y, int type);
     void                               set_selection_end(int x, int y, int type);
+    void                               init_move_selection(int x, int y);
+    void                               move_selection(int x, int y);
+    void                               emplace_selection();
+    bool                               selection_out_of_bounds();
     void                               recalculate_background(const cv::Size& new_size);
     void                               convert_to_RGBA(const cv::Mat& src, cv::Mat& dst);
     Cairo::RefPtr<Cairo::ImageSurface> create_cairo_surface(const cv::Mat& image);
@@ -93,7 +98,7 @@ class Canva {
     cv::Mat                       _background;
     cv::Mat                       _bg_tiled;
     cv::Mat                       _image;
-    cv::Mat                       _selected_region;
+    cv::Rect                      _selected_region;
     int                           _selected_layer;
     std::vector<Layer>            _layers;
     std::string                   _current_filename;

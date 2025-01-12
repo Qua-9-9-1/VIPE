@@ -81,6 +81,8 @@ void Engine::canva_one_click_action(int x, int y) {
         brush_actions(x, y);
     } else if (current_tool == vipe::Tool::bucket) {
         return;
+    } else if (current_tool == vipe::Tool::cursor) {
+        _canva->init_move_selection(x, y);
     } else if (current_tool == vipe::Tool::line) {
         _canva->line_draw(x, y, _menu.get_tool_size());
     } else if (current_tool == vipe::Tool::selection) {
@@ -105,8 +107,12 @@ void Engine::canva_action(int x, int y) {
         _canva->cursor_draw(x, y, 1);
     } else if (current_tool == vipe::Tool::brush || current_tool == vipe::Tool::eraser) {
         brush_actions(x, y);
+    } else if (current_tool == vipe::Tool::cursor) {
+        _canva->move_selection(x, y);
+    } else if (current_tool == vipe::Tool::line) {
+        // _canva->line_draw(x, y, _menu.get_tool_size());
     } else if (current_tool == vipe::Tool::selection) {
-        _canva->set_selection_end(x, y, _menu.get_tool_type());
+        _canva->resize_selection(x, y, _menu.get_tool_type());
     }
 }
 

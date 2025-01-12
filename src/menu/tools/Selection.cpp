@@ -31,6 +31,7 @@ void Selection::clear() {
     _points.clear();
     _start = cv::Point(-1, -1);
     _end   = cv::Point(-1, -1);
+    _mask  = cv::Mat();
 }
 
 bool Selection::is_selection_active() const {

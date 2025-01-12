@@ -18,10 +18,12 @@ class Selection {
     cv::Point                     get_start() { return _start; }
     cv::Point                     get_end() { return _end; }
     const std::vector<cv::Point>& get_points() { return _points; }
+    cv::Mat&                      get_mask() { return _mask; }
 
     void set_start(const cv::Point& start);
     void set_end(const cv::Point& end);
     void add_point(const cv::Point& point);
+    void set_mask(const cv::Mat& mask) { _mask = mask; }
     void clear();
     bool is_selection_active() const;
 
@@ -30,5 +32,6 @@ class Selection {
     cv::Point              _start;
     cv::Point              _end;
     std::vector<cv::Point> _points;
+    cv::Mat                _mask;
 };
 } // namespace vipe
