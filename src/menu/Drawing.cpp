@@ -7,7 +7,7 @@ void Canva::set_point_pos(int x, int y) {
     _prev_y = y;
 }
 
-void Canva::cursor_draw(int x1, int y1, int size) {
+void Canva::cursor_draw(int x1, int y1, int size, bool smooth) {
     bool is_selection_active = (_selection.is_selection_active() && !_selection.get_mask().empty());
     auto& drawing_zone =
         is_selection_active ? _selection.get_mask() : _layers[_selected_layer].image;
@@ -21,7 +21,8 @@ void Canva::cursor_draw(int x1, int y1, int size) {
                              _prev_y - (is_selection_active ? _selected_region.y : 0));
         cv::Point current_point(x1 - (is_selection_active ? _selected_region.x : 0),
                                 y1 - (is_selection_active ? _selected_region.y : 0));
-        cv::line(drawing_zone, prev_point, current_point, _color, size, cv::LINE_8);
+        cv::line(drawing_zone, prev_point, current_point, _color, size,
+                 smooth ? cv::LINE_AA : cv::LINE_8);
         //  cv::LINE_AA for anti-aliasing
         if (!is_selection_active)
             mark_layer_for_update(_selected_layer);
@@ -29,7 +30,7 @@ void Canva::cursor_draw(int x1, int y1, int size) {
     set_point_pos(x1, y1);
 }
 
-void Canva::cursor_square(int x1, int y1, int size) {
+void Canva::cursor_square(int x1, int y1, int size, bool smooth) {
     bool is_selection_active = (_selection.is_selection_active() && !_selection.get_mask().empty());
     auto& drawing_zone =
         is_selection_active ? _selection.get_mask() : _layers[_selected_layer].image;
@@ -59,7 +60,7 @@ void Canva::cursor_square(int x1, int y1, int size) {
     set_point_pos(x1, y1);
 }
 
-void Canva::cursor_triangle(int x1, int y1, int size) {
+void Canva::cursor_triangle(int x1, int y1, int size, bool smooth) {
     bool is_selection_active = (_selection.is_selection_active() && !_selection.get_mask().empty());
     auto& drawing_zone =
         is_selection_active ? _selection.get_mask() : _layers[_selected_layer].image;
@@ -89,7 +90,7 @@ void Canva::cursor_triangle(int x1, int y1, int size) {
     set_point_pos(x1, y1);
 }
 
-void Canva::cursor_pastel(int x1, int y1, int size) {
+void Canva::cursor_pastel(int x1, int y1, int size, bool smooth) {
     bool is_selection_active = (_selection.is_selection_active() && !_selection.get_mask().empty());
     auto& drawing_zone =
         is_selection_active ? _selection.get_mask() : _layers[_selected_layer].image;
@@ -111,7 +112,7 @@ void Canva::cursor_pastel(int x1, int y1, int size) {
         mark_layer_for_update(_selected_layer);
 }
 
-void Canva::cursor_spray(int x1, int y1, int size) {
+void Canva::cursor_spray(int x1, int y1, int size, bool smooth) {
     bool is_selection_active = (_selection.is_selection_active() && !_selection.get_mask().empty());
     auto& drawing_zone =
         is_selection_active ? _selection.get_mask() : _layers[_selected_layer].image;
@@ -135,7 +136,7 @@ void Canva::cursor_spray(int x1, int y1, int size) {
         mark_layer_for_update(_selected_layer);
 }
 
-void Canva::line_draw(int x, int y, int size) {
+void Canva::line_draw(int x, int y, int size, bool smooth) {
     bool is_selection_active = (_selection.is_selection_active() && !_selection.get_mask().empty());
     auto& drawing_zone =
         is_selection_active ? _selection.get_mask() : _layers[_selected_layer].image;
@@ -154,7 +155,8 @@ void Canva::line_draw(int x, int y, int size) {
     cv::Point current_point(x - (is_selection_active ? _selected_region.x : 0),
                             y - (is_selection_active ? _selected_region.y : 0));
 
-    cv::line(drawing_zone, prev_point, current_point, _color, size, cv::LINE_8);
+    cv::line(drawing_zone, prev_point, current_point, _color, size,
+             smooth ? cv::LINE_AA : cv::LINE_8);
     if (!is_selection_active)
         mark_layer_for_update(_selected_layer);
 }

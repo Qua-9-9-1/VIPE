@@ -33,6 +33,7 @@ class Menu {
     int                         _tool_size;
     Engine&                     _engine;
     int                         _tool_type;
+    bool                        _smooth;
     Gtk::MenuBar                _menu_bar;
     Gtk::Box                    _canvas_widget;
     Gtk::Box                    _bottom_bar;
