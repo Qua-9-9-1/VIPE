@@ -40,4 +40,35 @@ bool Selection::is_selection_active() const {
            !_points.empty();
 }
 
+std::vector<cv::Rect> Selection::get_resize_handles_points(const cv::Rect& selection,
+                                                           int             handle_size) {
+    return {
+        cv::Rect(selection.x - handle_size / 2, selection.y - handle_size / 2, handle_size,
+                 handle_size), // Haut-gauche
+        cv::Rect(selection.x + selection.width - handle_size / 2, selection.y - handle_size / 2,
+                 handle_size, handle_size), // Haut-droit
+        cv::Rect(selection.x - handle_size / 2, selection.y + selection.height - handle_size / 2,
+                 handle_size, handle_size), // Bas-gauche
+        cv::Rect(selection.x + selection.width - handle_size / 2,
+                 selection.y + selection.height - handle_size / 2, handle_size,
+                 handle_size) // Bas-droit
+    };
+}
+
+Selection::ResizeHandle Selection::detect_resize_handle(int x, int y) {
+    auto mask_rect = cv::Rect(_start, _end);
+    auto handles   = get_resize_handles_points(mask_rect);
+
+    std::cout << "Handles size: " << handles.size() << std::endl;
+    for (size_t i = 0; i < handles.size(); i++) {
+        std::cout << "Handle " << i << ": " << handles[i] << std::endl;
+        std::cout << "X: " << x << " Y: " << y << std::endl;
+        if (handles[i].contains(cv::Point(x, y))) {
+            std::cout << "Handle " << i << " selected" << std::endl;
+            return static_cast<ResizeHandle>(i + 1);
+        }
+    }
+    return ResizeHandle::None;
+}
+
 } // namespace vipe

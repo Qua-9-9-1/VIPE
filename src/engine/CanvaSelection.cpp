@@ -165,6 +165,19 @@ void Canva::draw_selection_rect(const Cairo::RefPtr<Cairo::Context>& cr) {
         cr->rectangle(x * _zoom_factor + _view_offset_x, y * _zoom_factor + _view_offset_y,
                       width * _zoom_factor, height * _zoom_factor);
         cr->stroke();
+        auto handles = _selection.get_resize_handles_points(cv::Rect(x, y, width, height));
+        for (const auto& handle : handles) {
+            cr->set_source_rgba(0.7, 0.7, 0.7, 1.0);
+            cr->rectangle(handle.x * _zoom_factor + _view_offset_x,
+                          handle.y * _zoom_factor + _view_offset_y, handle.width * _zoom_factor,
+                          handle.height * _zoom_factor);
+            cr->fill();
+            cr->set_source_rgba(1, 1, 1, 0.7);
+            cr->rectangle(handle.x * _zoom_factor + _view_offset_x,
+                          handle.y * _zoom_factor + _view_offset_y, handle.width * _zoom_factor,
+                          handle.height * _zoom_factor);
+            cr->stroke();
+        }
     }
 }
 
@@ -186,6 +199,87 @@ void Canva::empty_selection_on_layer() {
     _selection.set_mask(region_content);
     layer(_selected_region) = cv::Scalar(0, 0, 0, 0);
     mark_layer_for_update(_selected_layer);
+}
+
+bool Canva::init_resize_selection(int x, int y) {
+    if (!_selection.is_selection_active())
+        return false;
+    apply_canva_drawing_factors(x, y);
+    auto handles = _selection.detect_resize_handle(x, y);
+    if (handles == Selection::ResizeHandle::None)
+        return false;
+    _selection.set_active_handle(handles);
+    _prev_x = x;
+    _prev_y = y;
+    return true;
+}
+
+void Canva::resize_selection_from_handle(int x, int y) {
+    apply_canva_drawing_factors(x, y);
+    int dx = x - _prev_x;
+    int dy = y - _prev_y;
+
+    // Copie des anciens points et du masque
+    cv::Point old_start = _selection.get_start();
+    cv::Point old_end   = _selection.get_end();
+    cv::Mat   old_mask  = _selection.get_mask().clone();
+
+    // Mise à jour des points selon le handle actif
+    switch (_selection.get_active_handle()) {
+    case Selection::ResizeHandle::TopLeft:
+        old_start.x += dx;
+        old_start.y += dy;
+        break;
+    case Selection::ResizeHandle::TopRight:
+        old_end.x += dx;
+        old_start.y += dy;
+        break;
+    case Selection::ResizeHandle::BottomLeft:
+        old_start.x += dx;
+        old_end.y += dy;
+        break;
+    case Selection::ResizeHandle::BottomRight:
+        old_end.x += dx;
+        old_end.y += dy;
+        break;
+    default:
+        return;
+    }
+
+    // Permettre l'inversion (miroir) sans planter OpenCV
+    bool flipped_x = old_start.x > old_end.x;
+    bool flipped_y = old_start.y > old_end.y;
+
+    if (flipped_x)
+        std::swap(old_start.x, old_end.x);
+    if (flipped_y)
+        std::swap(old_start.y, old_end.y);
+
+    // Vérifier que la sélection ne devient pas trop petite
+    int min_size = 5; // Mettre une valeur minimale pour éviter 0 ou négatif
+    if (old_end.x - old_start.x < min_size)
+        old_end.x = old_start.x + min_size;
+    if (old_end.y - old_start.y < min_size)
+        old_end.y = old_start.y + min_size;
+
+    // Mise à jour des points dans la sélection
+    _selection.set_start(old_start);
+    _selection.set_end(old_end);
+
+    // Redimensionner proprement le masque SANS le déformer
+    if (!old_mask.empty()) {
+        cv::Size new_size(old_end.x - old_start.x, old_end.y - old_start.y);
+        cv::Mat  resized_mask;
+
+        if (new_size.width > 0 && new_size.height > 0) {
+            cv::resize(old_mask, resized_mask, new_size, 0, 0, cv::INTER_LINEAR);
+            _selection.set_mask(resized_mask);
+        }
+    }
+
+    _prev_x = x;
+    _prev_y = y;
+    update_selected_region();
 }
 
 void Canva::set_selection_start(int x, int y, int type) {
@@ -231,6 +325,8 @@ void Canva::set_selection_end(int x, int y, int type) {
 }
 
 void Canva::init_move_selection(int x, int y) {
+    if (init_resize_selection(x, y))
+        return;
     if (!_selection.is_selection_active()) {
         auto& layer = _layers[_selected_layer].image;
         if (layer.empty()) {
@@ -252,6 +348,10 @@ void Canva::move_selection(int x, int y) {
     if (_selected_region.empty() || !_selection.is_selection_active()) {
         return;
     }
+    if (_selection.get_active_handle() != Selection::ResizeHandle::None) {
+        resize_selection_from_handle(x, y);
+        return;
+    }
     apply_canva_drawing_factors(x, y);
     int offset_x = -(_prev_x - x);
     int offset_y = -(_prev_y - y);
@@ -264,6 +364,8 @@ void Canva::move_selection(int x, int y) {
     _prev_x = x;
     _prev_y = y;
 }
+
+void Canva::stop_selection_grab() { _selection.set_active_handle(Selection::ResizeHandle::None); }
 
 void Canva::emplace_selection() {
     auto& layer = _layers[_selected_layer].image;

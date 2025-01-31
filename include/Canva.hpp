@@ -57,33 +57,39 @@ class Canva {
     void center_and_zoom_picture(int window_width, int window_height);
     void update_background();
     void set_background_color(int r, int g, int b) { _background_color = cv::Scalar(b, g, r, 255); }
-    Layer&                             get_selected_layer() { return _layers[_selected_layer]; }
-    int                                get_selected_layer_index() { return _selected_layer; }
-    std::vector<Layer>&                get_layers() { return _layers; }
-    std::string                        get_filename() { return _current_filename; }
-    cv::Mat                            get_merged_image();
-    void                               update_selected_region();
-    void                               copy_from_layer_to_selection();
-    void                               empty_selection_on_layer();
-    void                               cursor_draw(int x1, int y1, int size);
-    void                               cursor_erase(int x1, int y1, int size);
-    void                               cursor_square(int x1, int y1, int size);
-    void                               cursor_triangle(int x1, int y1, int size);
-    void                               cursor_pastel(int x1, int y1, int size);
-    void                               cursor_spray(int x1, int y1, int size);
-    void                               line_draw(int x, int y, int size);
-    void                               color_fill();
-    cv::Scalar                         pick_color(int x, int y);
-    void                               set_selection_start(int x, int y, int type);
-    void                               resize_selection(int x, int y, int type);
-    void                               set_selection_end(int x, int y, int type);
-    void                               init_move_selection(int x, int y);
-    void                               move_selection(int x, int y);
-    void                               emplace_selection();
-    bool                               selection_out_of_bounds();
-    void                               copy_selection_to_clipboard();
-    void                               cut_selection_to_clipboard();
-    void                               paste_from_clipboard();
+    Layer&              get_selected_layer() { return _layers[_selected_layer]; }
+    int                 get_selected_layer_index() { return _selected_layer; }
+    std::vector<Layer>& get_layers() { return _layers; }
+    std::string         get_filename() { return _current_filename; }
+    cv::Mat             get_merged_image();
+    void                update_selected_region();
+    void                copy_from_layer_to_selection();
+    void                empty_selection_on_layer();
+
+    void       cursor_draw(int x1, int y1, int size, bool smooth = true);
+    void       cursor_erase(int x1, int y1, int size, bool smooth = true);
+    void       cursor_square(int x1, int y1, int size, bool smooth = true);
+    void       cursor_triangle(int x1, int y1, int size, bool smooth = true);
+    void       cursor_pastel(int x1, int y1, int size, bool smooth = true);
+    void       cursor_spray(int x1, int y1, int size, bool smooth = true);
+    void       line_draw(int x, int y, int size, bool smooth = true);
+    void       flood_fill(int x, int y, double tolerance = 50);
+    cv::Scalar pick_color(int x, int y);
+
+    bool init_resize_selection(int x, int y);
+    void resize_selection_from_handle(int x, int y);
+    void set_selection_start(int x, int y, int type);
+    void resize_selection(int x, int y, int type);
+    void set_selection_end(int x, int y, int type);
+    void init_move_selection(int x, int y);
+    void move_selection(int x, int y);
+    void emplace_selection();
+    void stop_selection_grab();
+    bool selection_out_of_bounds();
+    void copy_selection_to_clipboard();
+    void cut_selection_to_clipboard();
+    void paste_from_clipboard();
+
     void                               recalculate_background(const cv::Size& new_size);
     void                               convert_to_RGBA(const cv::Mat& src, cv::Mat& dst);
     Cairo::RefPtr<Cairo::ImageSurface> create_cairo_surface(const cv::Mat& image);

@@ -161,16 +161,44 @@ void Canva::line_draw(int x, int y, int size, bool smooth) {
         mark_layer_for_update(_selected_layer);
 }
 
-void Canva::color_fill() {
-    auto& drawing_zone = _layers[_selected_layer].image;
-    if (drawing_zone.empty())
+void Canva::flood_fill(int x, int y, double tolerance) {
+    if (tolerance < 0 || tolerance > 100)
         return;
 
-    if (drawing_zone.channels() == 4 && (_prev_x != -1 && _prev_y != -1)) {
-        cv::floodFill(drawing_zone, cv::Point(_prev_x, _prev_y), _color, 0, cv::Scalar(0, 0, 0, 0),
-                      cv::Scalar(0, 0, 0, 0), cv::FLOODFILL_FIXED_RANGE);
-        mark_layer_for_update(_selected_layer);
+    auto& image = _layers[_selected_layer].image;
+
+    if (_image.channels() != 4) {
+        std::cerr << "Erreur : floodFill ne supporte que les images RGBA. Image actuelle : "
+                  << _image.channels() << " canaux." << std::endl;
+        return;
     }
+
+    cv::Mat              img, alpha;
+    std::vector<cv::Mat> channels(4);
+
+    cv::split(image, channels);
+    img = cv::Mat();
+    cv::merge(std::vector<cv::Mat>{channels[0], channels[1], channels[2]}, img);
+    alpha = channels[3].clone();
+
+    cv::Scalar old_color = img.at<cv::Vec3b>(y, x); // Récupérer la couleur de départ
+    if (old_color == _color)
+        return;
+
+    // Convertir la tolérance (0-100%) en une plage de couleur (0-255)
+    int        diff = static_cast<int>((tolerance / 100.0) * 255.0);
+    cv::Scalar lower_diff(diff, diff, diff); // Tolérance basse (BGR)
+    cv::Scalar upper_diff(diff, diff, diff); // Tolérance haute (BGR)
+
+    // Masque pour `floodFill`
+    cv::Mat mask = cv::Mat::zeros(img.rows + 2, img.cols + 2, CV_8UC1);
+
+    // Appliquer `cv::floodFill` sur l'image BGR (sans alpha)
+    cv::floodFill(img, mask, cv::Point(x, y), _color, nullptr, lower_diff, upper_diff,
+                  cv::FLOODFILL_FIXED_RANGE);
+
+    // Réintégrer l'alpha et reconstruire l'image RGBA
+    cv::merge(std::vector<cv::Mat>{img, alpha}, image);
 }
 
 cv::Scalar Canva::pick_color(int x, int y) {
