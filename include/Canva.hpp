@@ -73,7 +73,7 @@ class Canva {
     void       cursor_pastel(int x1, int y1, int size, bool smooth = true);
     void       cursor_spray(int x1, int y1, int size, bool smooth = true);
     void       line_draw(int x, int y, int size, bool smooth = true);
-    void       flood_fill(int x, int y, double tolerance = 50);
+    void       flood_fill(int x, int y, double tolerance);
     cv::Scalar pick_color(int x, int y);
 
     bool init_resize_selection(int x, int y);

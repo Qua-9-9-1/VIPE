@@ -2,7 +2,7 @@
 
 namespace vipe {
 Menu::Menu(Engine& engine)
-    : _engine(engine), _tool_size(12), _tool_type(0), _tool_type_combo(nullptr),
+    : _engine(engine), _tool_size(12), _tool_type(0), _smooth(true), _tool_type_combo(nullptr),
       _selected_file_box(nullptr) {
     _menu_bar.override_background_color(Gdk::RGBA("CAD7ED"));
     create_file_option();

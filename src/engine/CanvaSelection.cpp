@@ -219,12 +219,10 @@ void Canva::resize_selection_from_handle(int x, int y) {
     int dx = x - _prev_x;
     int dy = y - _prev_y;
 
-    // Copie des anciens points et du masque
     cv::Point old_start = _selection.get_start();
     cv::Point old_end   = _selection.get_end();
     cv::Mat   old_mask  = _selection.get_mask().clone();
 
-    // Mise à jour des points selon le handle actif
     switch (_selection.get_active_handle()) {
     case Selection::ResizeHandle::TopLeft:
         old_start.x += dx;
@@ -246,7 +244,6 @@ void Canva::resize_selection_from_handle(int x, int y) {
         return;
     }
 
-    // Permettre l'inversion (miroir) sans planter OpenCV
     bool flipped_x = old_start.x > old_end.x;
     bool flipped_y = old_start.y > old_end.y;
 
@@ -255,18 +252,15 @@ void Canva::resize_selection_from_handle(int x, int y) {
     if (flipped_y)
         std::swap(old_start.y, old_end.y);
 
-    // Vérifier que la sélection ne devient pas trop petite
-    int min_size = 5; // Mettre une valeur minimale pour éviter 0 ou négatif
+    int min_size = 5;
     if (old_end.x - old_start.x < min_size)
         old_end.x = old_start.x + min_size;
     if (old_end.y - old_start.y < min_size)
         old_end.y = old_start.y + min_size;
 
-    // Mise à jour des points dans la sélection
     _selection.set_start(old_start);
     _selection.set_end(old_end);
 
-    // Redimensionner proprement le masque SANS le déformer
     if (!old_mask.empty()) {
         cv::Size new_size(old_end.x - old_start.x, old_end.y - old_start.y);
         cv::Mat  resized_mask;
@@ -294,7 +288,6 @@ void Canva::set_selection_start(int x, int y, int type) {
 }
 
 void Canva::resize_selection(int x, int y, int type) {
-    // type = 2 == lasso, type = 3 == magic_wand
     apply_canva_drawing_factors(x, y);
     x = std::clamp(x, 0, _image.cols);
     y = std::clamp(y, 0, _image.rows);

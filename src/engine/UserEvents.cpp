@@ -9,7 +9,6 @@ bool Engine::on_button_press(GdkEventButton* event) {
         } else if (event->button == 2) {
             _canva->set_point_pos(event->x, event->y);
         }
-        _drawing_area.queue_draw();
         return true;
     }
     return false;
@@ -68,6 +67,7 @@ void Engine::canva_click_action(int x, int y, GdkEventButton* event) {
             }
             canva_one_click_action(x, y);
         }
+        _drawing_area.queue_draw();
     }
 }
 
@@ -75,13 +75,13 @@ void Engine::canva_one_click_action(int x, int y) {
     auto current_tool = _toolkit->get_current_tool();
 
     if (current_tool == vipe::Tool::pencil) {
-        _canva->cursor_draw(x, y, 1);
-        _canva->cursor_draw(x, y, 1);
+        _canva->cursor_draw(x, y, 1, _menu.get_smooth());
+        _canva->cursor_draw(x, y, 1, _menu.get_smooth());
     } else if (current_tool == vipe::Tool::brush || current_tool == vipe::Tool::eraser) {
         brush_actions(x, y);
         brush_actions(x, y);
     } else if (current_tool == vipe::Tool::bucket) {
-        _canva->flood_fill(x, y);
+        _canva->flood_fill(x, y, double(_menu.get_tool_size()));
     } else if (current_tool == vipe::Tool::cursor) {
         _canva->init_move_selection(x, y);
     } else if (current_tool == vipe::Tool::line) {
@@ -107,7 +107,7 @@ void Engine::canva_action(int x, int y) {
     auto current_tool = _toolkit->get_current_tool();
 
     if (current_tool == vipe::Tool::pencil) {
-        _canva->cursor_draw(x, y, 1);
+        _canva->cursor_draw(x, y, 1, _menu.get_smooth());
     } else if (current_tool == vipe::Tool::brush || current_tool == vipe::Tool::eraser) {
         brush_actions(x, y);
     } else if (current_tool == vipe::Tool::cursor) {
@@ -122,15 +122,15 @@ void Engine::canva_action(int x, int y) {
 void Engine::brush_actions(int x, int y) {
     auto tool_type = _menu.get_tool_type();
     if (tool_type == 0) {
-        _canva->cursor_draw(x, y, _menu.get_tool_size());
+        _canva->cursor_draw(x, y, _menu.get_tool_size(), _menu.get_smooth());
     } else if (tool_type == 1) {
-        _canva->cursor_square(x, y, _menu.get_tool_size());
+        _canva->cursor_square(x, y, _menu.get_tool_size(), _menu.get_smooth());
     } else if (tool_type == 2) {
-        _canva->cursor_triangle(x, y, _menu.get_tool_size());
+        _canva->cursor_triangle(x, y, _menu.get_tool_size(), _menu.get_smooth());
     } else if (tool_type == 3) {
-        _canva->cursor_pastel(x, y, _menu.get_tool_size());
+        _canva->cursor_pastel(x, y, _menu.get_tool_size(), _menu.get_smooth());
     } else if (tool_type == 4) {
-        _canva->cursor_spray(x, y, _menu.get_tool_size());
+        _canva->cursor_spray(x, y, _menu.get_tool_size(), _menu.get_smooth());
     }
 }
 

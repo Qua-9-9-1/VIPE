@@ -15,6 +15,7 @@ class Menu {
     Gtk::Box&     get_bottom_bar() { return _bottom_bar; }
     int           get_tool_size() { return _tool_size; }
     int           get_tool_type() { return _tool_type; }
+    bool          get_smooth() { return _smooth; }
     void          create_file_option();
     void          create_display_option();
     void          create_effect_option();

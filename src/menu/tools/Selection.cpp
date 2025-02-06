@@ -42,17 +42,14 @@ bool Selection::is_selection_active() const {
 
 std::vector<cv::Rect> Selection::get_resize_handles_points(const cv::Rect& selection,
                                                            int             handle_size) {
-    return {
-        cv::Rect(selection.x - handle_size / 2, selection.y - handle_size / 2, handle_size,
-                 handle_size), // Haut-gauche
-        cv::Rect(selection.x + selection.width - handle_size / 2, selection.y - handle_size / 2,
-                 handle_size, handle_size), // Haut-droit
-        cv::Rect(selection.x - handle_size / 2, selection.y + selection.height - handle_size / 2,
-                 handle_size, handle_size), // Bas-gauche
-        cv::Rect(selection.x + selection.width - handle_size / 2,
-                 selection.y + selection.height - handle_size / 2, handle_size,
-                 handle_size) // Bas-droit
-    };
+    return {cv::Rect(selection.x - handle_size / 2, selection.y - handle_size / 2, handle_size,
+                     handle_size),
+            cv::Rect(selection.x + selection.width - handle_size / 2, selection.y - handle_size / 2,
+                     handle_size, handle_size),
+            cv::Rect(selection.x - handle_size / 2,
+                     selection.y + selection.height - handle_size / 2, handle_size, handle_size),
+            cv::Rect(selection.x + selection.width - handle_size / 2,
+                     selection.y + selection.height - handle_size / 2, handle_size, handle_size)};
 }
 
 Selection::ResizeHandle Selection::detect_resize_handle(int x, int y) {

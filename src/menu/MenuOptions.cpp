@@ -70,9 +70,10 @@ void Menu::create_sub_menu() {
     _open_files_box = Gtk::make_managed<Gtk::Box>(Gtk::ORIENTATION_HORIZONTAL);
     _open_files_box->set_spacing(5);
 
-    auto label            = Gtk::make_managed<Gtk::Label>("Taille du pinceau:");
-    auto brush_size_scale = Gtk::make_managed<Gtk::Scale>();
-    auto horizontal_box   = Gtk::make_managed<Gtk::Box>(Gtk::ORIENTATION_HORIZONTAL);
+    auto label                = Gtk::make_managed<Gtk::Label>("Option de l'outil");
+    auto brush_size_scale     = Gtk::make_managed<Gtk::Scale>();
+    auto horizontal_box       = Gtk::make_managed<Gtk::Box>(Gtk::ORIENTATION_HORIZONTAL);
+    auto toggle_smooth_button = Gtk::make_managed<Gtk::Button>("Lissage: ON");
 
     brush_size_scale->set_range(1.0, 400.0);
     brush_size_scale->set_value(_tool_size);
@@ -80,9 +81,16 @@ void Menu::create_sub_menu() {
         _tool_size = static_cast<int>(brush_size_scale->get_value());
     });
 
+    toggle_smooth_button->signal_clicked().connect([this, toggle_smooth_button]() {
+        _smooth = !_smooth;
+        toggle_smooth_button->set_label(_smooth ? "Lissage: ON" : "Lissage: OFF");
+    });
+
     _tool_type_combo = Gtk::make_managed<Gtk::ComboBoxText>();
     horizontal_box->pack_start(*_tool_type_combo, Gtk::PACK_SHRINK);
     horizontal_box->pack_start(*brush_size_scale, Gtk::PACK_EXPAND_WIDGET);
+    horizontal_box->pack_start(*toggle_smooth_button, Gtk::PACK_SHRINK);
+
     _sub_menu.set_orientation(Gtk::ORIENTATION_VERTICAL);
     _sub_menu.pack_start(*_open_files_box, Gtk::PACK_SHRINK);
     _sub_menu.pack_start(*label, Gtk::PACK_SHRINK);
