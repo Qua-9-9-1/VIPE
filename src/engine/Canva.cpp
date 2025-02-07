@@ -66,7 +66,7 @@ void Canva::create_blank_picture(int width, int height) {
     _image = cv::Mat(width, height, CV_8UC4, cv::Scalar(255, 255, 255, 255));
     update_background();
     _layers[0].image = _image;
-    update_selected_region();
+    _selection.update_selected_region(_image);
 }
 
 void Canva::recalculate_background(const cv::Size& new_size) {
@@ -109,7 +109,7 @@ void Canva::set_image(const std::string& filename) {
     convert_to_RGBA(_image, _image);
     update_background();
     _layers[0].image = _image;
-    update_selected_region();
+    _selection.update_selected_region(_image);
 }
 
 void Canva::convert_to_RGBA(const cv::Mat& src, cv::Mat& dst) {
@@ -176,21 +176,8 @@ void Canva::copy_from_layer_to_selection() {
     if (layer.empty()) {
         return;
     }
-    cv::Mat region_content = layer(_selected_region).clone();
+    cv::Mat region_content = layer(_selection.get_selected_region()).clone();
     _selection.set_mask(region_content);
-}
-
-void Canva::update_selected_region() {
-    if (_selection.is_selection_active()) {
-        auto selection_start = _selection.get_start();
-        auto selection_end   = _selection.get_end();
-        _selected_region     = cv::Rect(std::min(selection_start.x, selection_end.x),
-                                        std::min(selection_start.y, selection_end.y),
-                                        std::abs(selection_end.x - selection_start.x),
-                                        std::abs(selection_end.y - selection_start.y));
-    } else {
-        _selected_region = cv::Rect(0, 0, _image.cols, _image.rows);
-    }
 }
 
 } // namespace vipe

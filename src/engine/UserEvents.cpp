@@ -65,13 +65,13 @@ void Engine::canva_click_action(int x, int y, GdkEventButton* event) {
             } else if (current_tool == vipe::Tool::eraser) {
                 _canva->set_color(cv::Scalar(0, 0, 0, 0));
             }
-            canva_one_click_action(x, y);
+            canva_one_click_action(x, y, true);
         }
         _drawing_area.queue_draw();
     }
 }
 
-void Engine::canva_one_click_action(int x, int y) {
+void Engine::canva_one_click_action(int x, int y, bool right_click) {
     auto current_tool = _toolkit->get_current_tool();
 
     if (current_tool == vipe::Tool::pencil) {
@@ -87,7 +87,7 @@ void Engine::canva_one_click_action(int x, int y) {
     } else if (current_tool == vipe::Tool::line) {
         _canva->line_draw(x, y, _menu.get_tool_size());
     } else if (current_tool == vipe::Tool::selection) {
-        _canva->set_selection_start(x, y, _menu.get_tool_type());
+        _canva->set_selection_start(x, y, _menu.get_tool_type(), right_click);
     }
 }
 
@@ -96,8 +96,12 @@ void Engine::canva_release_action(int x, int y) {
 
     if (current_tool == vipe::Tool::line) {
         _canva->line_draw(x, y, _menu.get_tool_size());
+        _canva->empty_unselected_mask();
+    } else if (current_tool == vipe::Tool::brush || current_tool == vipe::Tool::pencil) {
+        _canva->empty_unselected_mask();
     } else if (current_tool == vipe::Tool::selection) {
         _canva->set_selection_end(x, y, _menu.get_tool_type());
+        _canva->normalize_selection();
     } else if (current_tool == vipe::Tool::cursor) {
         _canva->stop_selection_grab();
     }

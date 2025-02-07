@@ -56,7 +56,7 @@ class Engine : public Gtk::Window {
     bool on_motion_notify(GdkEventMotion* event);
     bool on_scroll(GdkEventScroll* event);
     void canva_click_action(int x, int y, GdkEventButton* event);
-    void canva_one_click_action(int x, int y);
+    void canva_one_click_action(int x, int y, bool right_click = false);
     void canva_action(int x, int y);
     void canva_release_action(int x, int y);
     void brush_actions(int x, int y);

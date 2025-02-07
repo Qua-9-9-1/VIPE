@@ -62,7 +62,6 @@ class Canva {
     std::vector<Layer>& get_layers() { return _layers; }
     std::string         get_filename() { return _current_filename; }
     cv::Mat             get_merged_image();
-    void                update_selected_region();
     void                copy_from_layer_to_selection();
     void                empty_selection_on_layer();
 
@@ -75,12 +74,14 @@ class Canva {
     void       line_draw(int x, int y, int size, bool smooth = true);
     void       flood_fill(int x, int y, double tolerance);
     cv::Scalar pick_color(int x, int y);
+    void       empty_unselected_mask();
 
     bool init_resize_selection(int x, int y);
     void resize_selection_from_handle(int x, int y);
-    void set_selection_start(int x, int y, int type);
+    void set_selection_start(int x, int y, int type, bool multiple = false);
     void resize_selection(int x, int y, int type);
     void set_selection_end(int x, int y, int type);
+    void normalize_selection();
     void init_move_selection(int x, int y);
     void move_selection(int x, int y);
     void emplace_selection();
@@ -112,7 +113,6 @@ class Canva {
     cv::Mat                       _background;
     cv::Mat                       _bg_tiled;
     cv::Mat                       _image;
-    cv::Rect                      _selected_region;
     int                           _selected_layer;
     std::vector<Layer>            _layers;
     std::string                   _current_filename;
